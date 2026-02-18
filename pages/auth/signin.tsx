@@ -72,7 +72,7 @@ const SignIn = () => {
       
       const { category } = router.query;
       router.replace({
-        pathname: "/agent", 
+        pathname: "/agent",
         query: (category && !Array.isArray(category)) ? { category: category } : { category: "find" }
       });
     } catch (error) {
