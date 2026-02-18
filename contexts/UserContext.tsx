@@ -1,27 +1,49 @@
+import { useRouter } from "next/router";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 interface UserContextType {
   name: string;
-  setName: (name: string) => void;
+  isSigned: () => boolean;
+  signIn: (name: string) => void;
+  signOut: () => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+  const router = useRouter();
+
   const [name, setName] = useState<string>("");
 
-  const setNameWithStorage = (newName: string) => {
+  const isSigned = () => {
+    const isSigned = sessionStorage.getItem("isSigned") === "true";
+    return isSigned;
+  };
+
+  const signIn = (newName: string) => {
     setName(newName);
-    localStorage.setItem("name", newName);
+    sessionStorage.setItem("isSigned", "true");
+    sessionStorage.setItem("name", newName);
+  };
+
+  const signOut = () => {
+    setName("");
+    sessionStorage.removeItem("isSigned");
+    sessionStorage.removeItem("name");
+    router.replace("/");
   };
 
   useEffect(() => {
-    const savedName = localStorage.getItem("name");
-    if (savedName) setName(savedName);
+    const savedSigned = sessionStorage.getItem("isSigned") === "true";
+    const savedName = sessionStorage.getItem("name");
+
+    if (savedName && savedSigned) {
+      setName(savedName);
+    }
   }, []);
 
   return (
-    <UserContext.Provider value={{ name, setName: setNameWithStorage }}>
+    <UserContext.Provider value={{ name, isSigned, signIn, signOut }}>
       {children}
     </UserContext.Provider>
   );

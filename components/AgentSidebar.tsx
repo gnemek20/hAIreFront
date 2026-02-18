@@ -27,7 +27,7 @@ const profileIcon = {
 
 const AgentSidebar = () => {
   const router = useRouter();
-  const { name } = useUser();
+  const { name, signOut } = useUser();
 
   const agentRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -46,11 +46,6 @@ const AgentSidebar = () => {
       pathname,
       query
     });
-  };
-
-  const signOut = () => {
-    document.cookie = `access_token=; path=/; max-age=0; SameSite=Lax`;
-    router.push("/");
   };
 
   const handleChangeToggledProfilePanelState = () => {

@@ -12,7 +12,7 @@ const logoIcon = {
 
 const SignIn = () => {
   const router = useRouter();
-  const { setName } = useUser();
+  const { signIn } = useUser();
 
   const [id, setId] = useState<string>("");
   const [pwd, setPwd] = useState<string>("");
@@ -67,7 +67,7 @@ const SignIn = () => {
         return;
       }
 
-      setName(data.username);
+      signIn(data.username);
       document.cookie = `access_token=${data.access_token}; path=/; max-age=${6*60*60}; SameSite=Lax`;
       
       const { category } = router.query;
