@@ -3,15 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 const middleware = (req: NextRequest) => {
   const auth = req.cookies.get("access_token");
 
-  // if (!auth) {
-  //   const signinURL = new URL("/auth/signin", req.url);
+  if (!auth) {
+    const currentSearchParams = new URL(req.url).searchParams;
+    const signinURL = new URL("/auth/signin", req.url);
 
-  //   req.nextUrl.searchParams.forEach((value, key) => {
-  //     signinURL.searchParams.set(key, value);
-  //   });
+    currentSearchParams.forEach((value, key) => {
+      signinURL.searchParams.set(key, value);
+    });
 
-  //   return NextResponse.redirect(signinURL);
-  // }
+    return NextResponse.redirect(signinURL);
+  }
 
   return NextResponse.next();
 };
