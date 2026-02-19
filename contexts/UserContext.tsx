@@ -2,9 +2,10 @@ import { useRouter } from "next/router";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 interface UserContextType {
+  token: string;
   name: string;
-  isSigned: () => boolean;
-  signIn: (name: string) => void;
+  hasAuth: () => boolean;
+  signIn: (token: string, name: string) => void;
   signOut: () => void;
 };
 
@@ -13,37 +14,48 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
+  const [token, setToken] = useState<string>("");
   const [name, setName] = useState<string>("");
 
-  const isSigned = () => {
-    const isSigned = sessionStorage.getItem("isSigned") === "true";
-    return isSigned;
+  const hasAuth = () => {
+    if (typeof window === "undefined") return false;
+
+    const hasAuth = sessionStorage.getItem("hasAuth") === "true";
+    return hasAuth;
   };
 
-  const signIn = (newName: string) => {
+  const signIn = (newToken: string, newName: string) => {
+    if (typeof window === "undefined") return;
+
+    setToken(newToken);
     setName(newName);
-    sessionStorage.setItem("isSigned", "true");
+    sessionStorage.setItem("token", newToken);
     sessionStorage.setItem("name", newName);
+    sessionStorage.setItem("hasAuth", "true");
   };
-
+  
   const signOut = () => {
+    setToken("");
     setName("");
-    sessionStorage.removeItem("isSigned");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("hasAuth");
     sessionStorage.removeItem("name");
     router.replace("/");
   };
 
   useEffect(() => {
-    const savedSigned = sessionStorage.getItem("isSigned") === "true";
-    const savedName = sessionStorage.getItem("name");
+    if (typeof window === "undefined") return;
 
-    if (savedName && savedSigned) {
-      setName(savedName);
-    }
+    const savedToken = sessionStorage.getItem("token");
+    const savedName = sessionStorage.getItem("name");
+    const savedSigned = sessionStorage.getItem("hasAuth") === "true";
+
+    if (savedToken && savedSigned) setToken(savedToken);
+    if (savedName && savedSigned) setName(savedName);
   }, []);
 
   return (
-    <UserContext.Provider value={{ name, isSigned, signIn, signOut }}>
+    <UserContext.Provider value={{ token, name, hasAuth, signIn, signOut }}>
       {children}
     </UserContext.Provider>
   );

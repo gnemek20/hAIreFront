@@ -1,0 +1,98 @@
+.background {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 760px;
+  display: flex;
+  overflow: hidden;
+}
+.background img {
+  z-index: -1;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  object-fit: cover;
+  width: 105%;
+  height: 105%;
+  filter: blur(7.5px);
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+  height: 700px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.introduce {
+  display: flex;
+  flex-direction: column;
+  margin-top: 125px;
+  gap: 20px;
+}
+
+.additional {
+  display: flex;
+  justify-content: center;
+}
+.additional > div {
+  border: 1px solid var(--primary);
+  border-radius: 50px;
+  padding: 5px 35px;
+  box-shadow: 0px 0px 15px 1px var(--primary);
+}
+.additional p {
+  color: var(--color-blue);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.title h1, .title p {
+  text-align: center;
+  white-space: pre-line;
+}
+.title h1 {
+  color: var(--color-white);
+  font-family: var(--font-orbitron);
+  font-size: 50px;
+}
+.title p {
+  color: var(--color-gray);
+  font-size: 24px;
+}
+
+.option {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+}
+.option > div {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  padding: 5px 15px;
+  border: 1px solid var(--foreground);
+  border-radius: 2.5px;
+  background-color: rgba(0, 0, 0, 0.15);
+  gap: 10px;
+  transition: ease-in-out 150ms;
+}
+.option img {
+  object-fit: contain;
+  width: auto;
+  height: 90%;
+  filter: invert(0.95);
+}
+.option p {
+  color: var(--color-white);
+  font-size: 12px;
+}
+
+@media (hover: hover) {
+  .option > div:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+  }
+}

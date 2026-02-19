@@ -1,0 +1,269 @@
+.searchBox {
+  display: flex;
+  justify-content: center;
+  padding: 50px 25px;
+  background-color: color-mix(in oklab, var(--card) 75%, black);
+}
+.searchBox > div {
+  display: flex;
+  max-width: 650px;
+  width: 100%;
+  margin: auto;
+  gap: 25px;
+}
+.searchBox input {
+  flex: 1;
+  padding: 15px 10px 15px 35px;
+  border: 1px solid transparent;
+  border-radius: 2.5px;
+  color: var(--foreground);
+  font-size: 16px;
+  background-color: var(--input);
+  outline: none;
+  transition: ease-in-out 150ms;
+}
+.searchBox input:focus {
+  border: 1px solid var(--primary);
+}
+.searchBox button {
+  cursor: pointer;
+  padding: 15px 25px;
+  border: 0;
+  border-radius: 2.5px;
+  font-weight: bold;
+  background-color: var(--primary);
+  box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--primary) 85%, transparent);
+  transition: ease-in-out 150ms;
+}
+
+.tagBox {
+  padding: 15px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--background);
+}
+.tagList {
+  display: flex;
+  max-width: 1400px;
+  width: 75dvw;
+  margin: auto;
+  gap: 20px;
+}
+.tagList > div {
+  cursor: pointer;
+  padding: 2.5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2.5px;
+  transition: ease-in-out 150ms;
+}
+.tagBox p {
+  color: var(--color-white);
+  font-size: 14px;
+}
+
+.toggledTag {
+  border-color: color-mix(in oklab, var(--ring) 85%, transparent) !important;
+  background-color: color-mix(in oklab, var(--ring) 85%, transparent);
+  box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--primary) 75%, transparent);
+}
+
+.agentBox {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--background);
+}
+.agentWrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  width: 75dvw;
+  padding: 50px 0;
+  margin: auto;
+  gap: 30px;
+}
+
+.order {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order > div {
+  display: flex;
+  gap: 10px;
+}
+.order > div:last-child {
+  cursor: pointer;
+  opacity: 0.35;
+  transition: ease-in-out 150ms;
+}
+.order h2 {
+  color: var(--color-white);
+  font-family: var(--font-orbitron);
+}
+.order h2:last-child {
+  color: var(--color-blue);
+}
+.order img {
+  width: auto;
+  height: 20px;
+  filter: invert(0.95);
+}
+.order p {
+  color: var(--color-white);
+  font-size: 14px;
+}
+
+.agentList {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 200px;
+  gap: 25px;
+}
+.agentList > div {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 2.5px;
+  transition: ease-in-out 150ms;
+}
+
+.agentImage {
+  aspect-ratio: 1 / 1;
+}
+.agentProfile {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  background-color: color-mix(in oklab, var(--card) 75%, transparent);
+  gap: 7.5px;
+}
+
+.agentProfile > div {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.agentProfile > div:first-child {
+  flex: 1;
+}
+.agentProfile > hr {
+  border: 0;
+  height: 1px;
+  background-color: var(--border);
+}
+.agentProfile .title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.name h4 {
+  color: var(--color-white);
+  font-family: var(--font-orbitron);
+  font-size: 18px;
+  transition: ease-in-out 150ms;
+}
+.version {
+  display: flex;
+  padding: 2.5px 7.5px;
+  border-radius: 2.5px;
+  background-color: var(--secondary);
+}
+.version p {
+  color: var(--color-white);
+  font-size: 12px;
+}
+
+.description p {
+  color: var(--color-gray);
+  font-size: 14px;
+}
+
+.agentList .option {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.subscribe {
+  cursor: pointer;
+  border: 1px solid color-mix(in oklab, var(--secondary) 25%, transparent);
+  border-radius: 2.5px;
+  padding: 2.5px 10px;
+}
+.subscribe p {
+  color: var(--color-gray);
+  font-size: 12px;
+}
+
+.subscribed {
+  border-color: color-mix(in oklab, var(--accent) 75%, transparent);
+  background-color: color-mix(in oklab, var(--accent) 50%, transparent);
+}
+.subscribed p {
+  color: var(--color-white);
+}
+
+.price {
+  display: flex;
+}
+.price p {
+  color: var(--color-blue);
+  text-align: end;
+  font-weight: bold;
+}
+
+.listIndex {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.listIndex > div {
+  cursor: pointer;
+  padding: 2.5px 7.5px;
+  border: 1px solid var(--border);
+  transition: ease-in-out 150ms;
+}
+.listIndex p {
+  color: var(--color-gray);
+  font-size: 12px;
+}
+
+.toggledIndex {
+  border-color: color-mix(in oklab, var(--primary) 50%, transparent) !important;
+  background-color: color-mix(in oklab, var(--primary) 50%, transparent);
+}
+.toggledIndex p {
+  color: var(--color-white);
+}
+
+@media (hover: hover) {
+  .searchBox button:hover {
+    opacity: 0.65;
+  }
+
+  .tagList > div:hover {
+    border-color: color-mix(in oklab, var(--ring) 85%, transparent);
+  }
+
+  .order > div:last-child:hover {
+    opacity: 1;
+  }
+
+  .agentList > div:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+  .agentList > div:hover .name h4 {
+    color: var(--color-blue);
+  }
+
+  .listIndex > div:hover {
+    border-color: color-mix(in oklab, var(--primary) 75%, transparent);
+  }
+}
+
+@media screen and (max-width: 1400px) {
+  .agentList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,115 @@
+.container {
+  display: flex;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: var(--background);
+  background-image: 
+    linear-gradient(rgba(0, 217, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 255, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  max-width: 385px;
+  max-height: 585px;
+  width: 50dvw;
+  height: 85dvh;
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+  border-radius: 2.5px;
+  margin: auto;
+  background-color: var(--card);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  padding: 35px;
+  gap: 15px;
+}
+.field > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7.5px;
+}
+
+.formTitle {
+  margin-bottom: 15px;
+}
+.formTitle h1 {
+  color: var(--color-white);
+}
+.formTitle p {
+  color: var(--color-gray);
+  font-size: 14px;
+}
+
+.input p {
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: bold;
+}
+.input input {
+  padding: 7.5px 10px;
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+  border-radius: 2.5px;
+  color: var(--color-white);
+  font-size: 14px;
+  background-color: transparent;
+}
+.input input:focus {
+  outline: 1px solid var(--primary);
+}
+
+.submit {
+  margin-top: 25px;
+}
+.submit button {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 0;
+  border-radius: 2.5px;
+  padding: 10px 25px;
+  font-weight: bold;
+  background-color: var(--primary);
+  gap: 10px;
+  transition: ease-in-out 150ms;
+}
+.submit button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+.submit button img {
+  object-fit: contain;
+  width: auto;
+  height: 14px;
+  transition: ease-in-out 150ms;
+}
+.submit button:disabled img {
+  filter: opacity(0.35);
+}
+
+.belt {
+  display: flex;
+  justify-content: center;
+  padding: 15px;
+  margin-top: auto;
+  margin-bottom: 35px;
+  background-color: color-mix(in oklab, var(--card) 75%, black);
+}
+.belt p {
+  color: var(--color-gray);
+  font-size: 12px;
+}
+
+@media (hover: hover) {
+  .title:hover {
+    opacity: 0.65;
+  }
+
+  .submit button:not(:disabled):hover img {
+    transform: translateX(5px);
+  }
+}

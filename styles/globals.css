@@ -1,20 +1,28 @@
 * {
   padding: 0;
   margin: 0;
-  font-family: 'Arial';
+  font-family: var(--font-sans);
 }
 
 :root {
-  --theme: #070942;
-  --dark-theme: #0D1117;
+  --background: oklch(12% .015 240);
+  --foreground: oklch(95% .005 240);
+  --card: oklch(18% .02 240);
+  --card-foreground: oklch(95% .005 240);
+  --primary: oklch(65% .18 210);
+  --primary-foreground: oklch(12% .015 240);
+  --secondary: oklch(55% .25 300);
+}
 
-  --line: #2b2b2b;
-  --dark-line: #EDEDED;
-  --light-line: #d0d0d0;
-
-  --white: #F2F2F5;
-  --light-white: #F9F9F9;
-
-  --black: #0D0D0D;
-  --light-black: #8F8F8F;
+:root, :host {
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-orbitron: Orbitron, Noto Sans KR, sans-serif;
+  --color-white: oklch(95% .005 240);
+  --color-gray: oklch(50% .005 240);
+  --color-blue: oklch(65% .18 210);
+  --border: oklch(25% .02 240 / .4);
+  --input: oklch(25% .02 240 / .5);
+  --ring: oklch(65% .18 210);
+  --accent: oklch(85% .25 130);
 }

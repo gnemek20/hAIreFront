@@ -1,0 +1,50 @@
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.headerWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 80rem;
+  width: 95dvw;
+  height: 60px;
+  margin: 0 auto;
+}
+.headerWrapper > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.headerWrapper img {
+  object-fit: contain;
+  width: auto;
+  height: 100%;
+  filter: brightness(3.75);
+}
+
+.title {
+  cursor: pointer;
+  height: 40px;
+  transition: ease-in-out 150ms;
+}
+.title h1 {
+  color: var(--color-white);
+  font-size: 18px;
+}
+
+.option p {
+  color: var(--color-white);
+  font-size: 14px;
+}
+.option a {
+  color: var(--color-gray);
+}
+
+@media (hover: hover) {
+  .title:hover {
+    opacity: 0.65;
+  }
+}

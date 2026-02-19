@@ -1,75 +1,361 @@
-import style from "@/styles/landing.module.css";
+import styles from "@/styles/pages/marketplace.module.css";
+import Hero from "@/components/Hero";
 import clsx from "clsx";
+import React, { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { AgentType } from "@/types/agentTypes";
 import { useRouter } from "next/router";
-import React from "react";
+import { debounceTimer } from "@/utils/timer";
+import { useUser } from "@/contexts/UserContext";
+import TopSticky from "@/components/TopSticky";
+import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 
-const logoIcon = {
-  src: require("@/public/images/logo.png"),
-  alt: "logo"
+const up_chart = {
+  src: require("@/public/assets/up-chart.svg"),
+  alt: "up"
 };
 
-const featureMessage = {
-  h1: [
-    `Use agents or share your own.`,
-    `Your agent, your way.`
-  ].join("\n"),
-  p: [
-    `AI agents are everywhere, but using the right one should be simple.`,
-    `Find agents that fit you, or upload and trade the ones you create in one marketplace.`
-  ].join("\n")
-};
+const tag_list = [
+  "All",
+  "Develop"
+];
 
-const Landing = () => {
+const dummyData: AgentType[] = [
+  {
+    slug: "blind-resume-scanner",
+    name: "블라인드 레쥬메 스캐너",
+    version: "1.0.0",
+    description: "채용 공고(JD)와 지원자 이력서를 입력하면, 편향을 제거한 블라인드 요약본과 역량 매칭 점수를 생성합니다.",
+    price: 1500,
+    icon: "👥",
+  },
+  {
+    slug: "meeting-action-extractor",
+    name: "회의록 액션아이템 추출기",
+    version: "1.0.0",
+    description: "회의록 텍스트에서 핵심 요약과 담당자별 액션아이템을 자동으로 추출합니다.",
+    price: 700,
+    icon: "📋",
+  },
+  {
+    slug: "privacy-masker",
+    name: "개인정보 마스킹 에이전트",
+    version: "1.0.0",
+    description: "문서 속 개인정보를 자동으로 탐지하고 마스킹 처리하여 안전한 문서를 생성합니다.",
+    price: 800,
+    icon: "🛡️",
+  },
+  {
+    slug: "receipt-organizer",
+    name: "영수증 & 인보이스 정리봇",
+    version: "1.0.0",
+    description: "영수증과 인보이스 내용을 입력하면 항목별로 분류하고 경비 보고서를 자동 생성합니다.",
+    price: 500,
+    icon: "🧾",
+  },
+  {
+    slug: "rfp-generator",
+    name: "RFP/제안서 초안 생성기",
+    version: "1.0.0",
+    description: "고객사 정보와 우리 서비스 소개를 입력하면, 맞춤형 제안서 초안과 예상 질문 리스트를 생성합니다.",
+    price: 1200,
+    icon: "📑",
+  },
+  {
+    slug: "trend-scout-copywriter",
+    name: "트렌드 스카우트 & 카피라이터",
+    version: "1.0.0",
+    description: "키워드 또는 경쟁사 URL을 입력하면 최신 트렌드를 분석하고, 브랜드 톤에 맞는 마케팅 콘텐츠 대본을 생성합니다.",
+    price: 900,
+    icon: "📈",
+  },
+  {
+    slug: "cover-letter-coach",
+    name: "자기소개서 코치",
+    version: "1.0.0",
+    description: "채용 공고와 본인 경력을 입력하면, 직무에 맞춘 자기소개서 초안과 항목별 피드백을 생성합니다.",
+    price: 700,
+    icon: "✍️",
+  },
+];
+
+const Marketplace = () => {
   const router = useRouter();
+  const user = useUser();
+  const subscriptions = useSubscriptions();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const push = (path: string) => {
-    router.push(path);
+  const [agentsData, setAgentsData] = useState<AgentType[]>([]);
+  const [agents, setAgents] = useState<AgentType[][]>([]);
+
+  const [subscribedSlugs, setSubscribedSlugs] = useState<AgentType["slug"][]>([]);
+
+  const [searchValue, setSearchValue] = useState<string>("");
+
+  const [toggledTag, setToggledTag] = useState<string>(tag_list[0]);
+  const [toggledPage, setToggledPage] = useState<number>(1);
+
+  const changeTag = (newTag: string) => {
+    setToggledTag(newTag);
   };
 
-  const pushToFindAgent = () => {
+  const changePage = (newPage: number) => {
     router.push({
-      pathname: "/agent",
-      query: { category: "find" }
-    });
+      pathname: router.pathname,
+      query: { page: newPage }
+    }, undefined, { shallow: true });
   };
 
-  const pushToShareAgent = () => {
-    router.push({
-      pathname: "/agent",
-      query: { category: "share" }
-    });
+  const sliceArray = (arr: AgentType[], size = 6): AgentType[][] => {
+    const result = [];
+    for (let i = 0; i < arr.length; i += size) {
+      result.push(arr.slice(i, i + size));
+    }
+
+    return result;
   };
+
+  const getAgents = async () => {
+    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
+    if (!serverURL) return;
+
+    try {
+      const res = await fetch(`${serverURL}/api/agents`, {
+        method: "GET"
+      });
+      if (!res.ok) return;
+
+      const data = await res.json();
+      // setAgentsData(data["agents"]);
+      setAgentsData([...data["agents"], ...dummyData]);
+    } catch (error) {
+      window.alert("Get agents error");
+      router.reload();
+    }
+  };
+
+  const getSubscriptions = async () => {
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!user.token) return;
+
+    try {
+      const res = await fetch(`${serverURL}/users/subscriptions/list`, {
+        method: "POST",
+        headers: { "Content-Type": "applicatiuon/json" },
+        body: JSON.stringify({
+          access_token: user.token
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSubscribedSlugs(data["subscriptions"]);
+      }
+      else {
+        console.error("Get subscriptions failed:", data.detail || data);
+      }
+    } catch (error) {
+      window.alert("Get subscriptions error");
+      router.reload();
+    }
+  };
+
+  const searchAgents = () => {
+    if (agentsData.length === 0) return;
+
+    let result = [];
+    for (const ag of agentsData) {
+      if (ag.name?.includes(searchValue) || ag.description?.includes(searchValue)) result.push(ag);
+    }
+
+    computeAgents(result);
+  };
+
+  const computeAgents = (candidates: AgentType[]) => {
+    const sliced = sliceArray(candidates);
+    setAgents(sliced);
+  };
+
+  const subscribeAgent = async (newSlug: AgentType["slug"]) => {
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!user.token) return;
+
+    try {
+      const res = await fetch(`${serverURL}/users/subscriptions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token,
+          subscriptions: [newSlug]
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSubscribedSlugs([...subscribedSlugs, newSlug]);
+      }
+      else {
+        console.error("Subscribe failed:", data.detail || data);
+      }
+    } catch (error) {
+      window.alert("Subscribe error");
+      router.reload();
+    }
+  };
+
+  const unSubscribeAgent = async (targetSlug: AgentType["slug"]) => {
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!user.token) return;
+
+    try {
+      const res = await fetch(`${serverURL}/users/subscriptions`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token,
+          slug: targetSlug
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSubscribedSlugs(subscribedSlugs.filter(slug => slug !== targetSlug));
+      }
+      else {
+        console.error("unSubscribe failed:", data.detail || data);
+      }
+    } catch (error) {
+      window.alert("unSubscribe error");
+      router.reload();
+    }
+  };
+
+  const handleClickAgent = (targetSlug: AgentType["slug"]) => {
+    if (!user.hasAuth()) {
+      router.push("/signin");
+      return;
+    }
+
+    if (subscribedSlugs.includes(targetSlug)) unSubscribeAgent(targetSlug);
+    else subscribeAgent(targetSlug);
+  };
+
+  const handleChangeSearchValue = (event: ChangeEvent<HTMLInputElement>) => {
+    const target = event.target;
+    const value = target.value;
+    
+    setSearchValue(value);
+  };
+
+  const handlePressEnter = (event: KeyboardEvent<HTMLDivElement>) => {
+    const key = event.key;
+    if (key === "Enter") searchAgents();
+  };
+
+  useEffect(() => {
+    debounceTimer(timerRef, () => {searchAgents()});
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (agentsData.length === 0) return;
+    computeAgents(agentsData);
+  }, [agentsData]);
+
+  useEffect(() => {
+    subscriptions.setSubs(subscribedSlugs);
+  }, [subscribedSlugs]);
+
+  useEffect(() => {
+    if (!user.hasAuth()) {
+      setSubscribedSlugs([]);
+      return;
+    }
+    
+    getSubscriptions();
+  }, [user.token]);
+
+  useEffect(() => {
+    const page = router.query["page"] as string;
+    if (page) setToggledPage(parseInt(page));
+
+    getAgents();
+  }, [router.query]);
 
   return (
-    <div className={clsx(style.container)}>
-      <div className={clsx(style.topContainer)}>
-        <div className={clsx(style.topWrapper)}>
-          <div>
-
+    <React.Fragment>
+      <TopSticky />
+      <Hero />
+      <div className={clsx(styles.searchBox)}>
+        <div onKeyDown={handlePressEnter}>
+          <input type="text" placeholder="Search Agent..." value={searchValue} onChange={handleChangeSearchValue} />
+          <button onClick={searchAgents}>Search</button>
+        </div>
+      </div>
+      <div className={clsx(styles.tagBox)}>
+        <div className={clsx(styles.tagList)}>
+          {tag_list.map((tag, idx) => (
+            <div className={clsx({ [styles.toggledTag]: toggledTag === tag })} onClick={() => changeTag(tag)} key={idx}>
+              <p>{tag}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className={clsx(styles.agentBox)}>
+        <div className={clsx(styles.agentWrapper)}>
+          <div className={clsx(styles.order)}>
+            <div>
+              <h2>AI Agents</h2>
+              <h2>{`(${agents.flat().length})`}</h2>
+            </div>
+            <div>
+              <Image src={up_chart.src} alt={up_chart.alt} />
+              <p>Default</p>
+            </div>
           </div>
-          <div className={clsx(style.logoContainer)}>
-            <Image src={logoIcon.src} alt={logoIcon.alt} />
+          <div className={clsx(styles.agentList)}>
+            {agents?.[toggledPage - 1]?.map((agent, idx) => (
+              <div onClick={() => handleClickAgent(agent["slug"])} key={idx}>
+                <div className={clsx(styles.agentProfile)}>
+                  <div>
+                    <div className={clsx(styles.title)}>
+                      <div className={clsx(styles.name)}>
+                        <h4>{`${agent.icon} ${agent.name}`}</h4>
+                      </div>
+                      <div className={clsx(styles.version)}>
+                        <p>{agent.version}</p>
+                      </div>
+                    </div>
+                    <div className={clsx(styles.description)}>
+                      <p>{agent.description}</p>
+                    </div>
+                  </div>
+                  <hr />
+                  <div className={clsx(styles.option)}>
+                    <div className={clsx(styles.subscribe, { [styles.subscribed]: subscribedSlugs.includes(agent.slug) })}>
+                      <p>구독</p>
+                    </div>
+                    <div className={clsx(styles.price)}>
+                      <p>{`\\${agent.price}`}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className={clsx(style.signContainer)}>
-            <button onClick={() => push("/auth/signin")}>Sign In</button>
-            <button onClick={() => push("/auth/signup")}>Sign Up</button>
+          <div className={clsx(styles.listIndex)}>
+            {agents.map((_, idx) => (
+              <div className={clsx({ [styles.toggledIndex]: toggledPage === idx + 1 })} onClick={() => changePage(idx + 1)} key={idx}>
+                <p>{idx + 1}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <div className={clsx(style.featureContainer)}>
-        <div className={clsx(style.message)}>
-          <h1>{featureMessage.h1}</h1>
-          <p>{featureMessage.p}</p>
-        </div>
-      </div>
-      <div className={clsx(style.startContainer)}>
-        <button onClick={pushToFindAgent}>Find Agent</button>
-        <button onClick={pushToShareAgent}>Share Agent</button>
-      </div>
-      {/* TODO: 소개 파트 추가 */}
-    </div>
+    </React.Fragment>
   );
 };
 
-export default Landing;
+export default Marketplace;

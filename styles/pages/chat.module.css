@@ -1,0 +1,186 @@
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: #0A0E14;
+  background-image: 
+    linear-gradient(rgba(0, 217, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 255, 0.1) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 100%, rgba(0, 217, 255, 0.35) 0%, rgba(0, 217, 255, 0.15) 25%, rgba(10, 14, 20, 0) 60%);
+  background-size: 50px 50px, 50px 50px, 100% 100%;
+}
+
+.container {
+  display: flex;
+  height: calc(100dvh - 60px);
+}
+
+.left {
+  width: 300px;
+  background-color: color-mix(in oklab, var(--card) 50%, var(--background));
+}
+
+.leftTitle {
+  display: flex;
+  align-items: center;
+  padding: 15px 25px;
+  gap: 15px;
+  border-bottom: 1px solid var(--border);
+}
+.leftTitle img {
+  object-fit: contain;
+  width: auto;
+  height: 20px;
+  transform: scaleX(-1);
+  filter: invert(0.95);
+}
+.leftTitle h1 {
+  color: var(--color-white);
+  font-size: 18px;
+}
+
+.roomList {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  gap: 5px;
+}
+.room {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 7.5px;
+  border: 1px solid transparent;
+  border-radius: 2.5px;
+  gap: 15px;
+  transition: ease-in-out 150ms;
+}
+.room p {
+  font-family: var(--font-orbitron);
+  color: var(--color-gray);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.toggledRoom {
+  background-color: rgba(255, 255, 255, 0.035);
+  box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--secondary) 35%, transparent);
+}
+.toggledRoom p {
+  color: var(--secondary);
+}
+
+.right {
+  flex: 1;
+  position: relative;
+  display: flex;
+  background-color: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(2px);
+}
+
+.chatbox {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 75%, transparent) transparent;
+}
+.chatboxWrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 750px;
+  width: 75%;
+  padding-top: 50px;
+  padding-bottom: calc(126px + 25px);
+  margin: 0 auto;
+  gap: 25px;
+}
+
+.agentChat {
+  display: flex;
+  flex-direction: column;
+  white-space: pre-line;
+  gap: 7.5px;
+}
+.userChat {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  border-bottom-right-radius: 0;
+  margin-left: auto;
+  background-color: color-mix(in oklab, var(--background) 50%, transparent);
+  white-space: pre-line;
+  gap: 7.5px;
+}
+.userChat p {
+  color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
+  word-break: break-word;
+  font-size: 14px;
+}
+
+.input {
+  position: absolute;
+  transform: translateX(-50%);
+  bottom: 25px;
+  left: 50%;
+  display: flex;
+  align-items: flex-end;
+  max-width: 750px;
+  width: 75%;
+  gap: 40px;
+}
+.input textarea {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 2.5px;
+  color: var(--color-white);
+  font-size: 15px;
+  background-color: color-mix(in oklab, var(--background) 25%, transparent);
+  backdrop-filter: blur(5px);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 35%, transparent) transparent;
+  outline: 1px solid transparent;
+  resize: none;
+  transition: ease-in-out 150ms;
+}
+.input textarea:focus {
+  outline-color: color-mix(in oklab, var(--primary) 35%, transparent);
+}
+.input button {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 2.5px;
+  background-color: color-mix(in oklab, var(--primary) 35%, transparent);
+  backdrop-filter: blur(5px);
+  transition: ease-in-out 150ms;
+}
+.input button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+.input button img {
+  object-fit: contain;
+  width: auto;
+  height: 16px;
+  filter: invert(0.95)
+}
+
+@media (hover: hover) {
+  .room:hover {
+    background-color: rgba(255, 255, 255, 0.035);
+  }
+  
+  .input button:not(:disabled):hover {
+    opacity: 0.65;
+  }
+}
