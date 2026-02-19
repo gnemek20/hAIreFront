@@ -77,13 +77,17 @@
   flex: 1;
   position: relative;
   display: flex;
+  justify-content: center;
   background-color: rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(2px);
+  /* overflow-y: scroll;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 75%, transparent) transparent; */
 }
 
 .chatbox {
   flex: 1;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   scrollbar-color: color-mix(in oklab, var(--foreground) 75%, transparent) transparent;
 }
 .chatboxWrapper {
@@ -96,6 +100,11 @@
   margin: 0 auto;
   gap: 25px;
 }
+.chatboxWrapper > div:not(.md) {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
 
 .agentChat {
   display: flex;
@@ -103,12 +112,17 @@
   white-space: pre-line;
   gap: 7.5px;
 }
+.agentChat p {
+  color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
+  word-break: break-word;
+}
+
 .userChat {
   display: flex;
   flex-direction: column;
   max-width: 85%;
   padding: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in oklab, var(--secondary) 35%, transparent);
   border-radius: 5px;
   border-bottom-right-radius: 0;
   margin-left: auto;
@@ -122,11 +136,47 @@
   font-size: 14px;
 }
 
+.logChat {
+  display: flex;
+  flex-direction: column;
+  height: 250px;
+  padding: 15px;
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  border-radius: 5px;
+  border-bottom-left-radius: 0;
+  white-space: pre-line;
+  background-color: color-mix(in oklab, var(--card) 35%, transparent);
+  backdrop-filter: blur(5px);
+  gap: 7.5px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 35%, transparent) transparent;
+}
+.logChat {
+  color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
+  word-break: break-word;
+}
+
+.processText p {
+  color: color-mix(in oklab, var(--color-gray) 75%, var(--color-white));
+  font-size: 14px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
 .input {
   position: absolute;
-  transform: translateX(-50%);
   bottom: 25px;
-  left: 50%;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+.inputWrapper {
   display: flex;
   align-items: flex-end;
   max-width: 750px;
@@ -140,7 +190,7 @@
   border-radius: 2.5px;
   color: var(--color-white);
   font-size: 15px;
-  background-color: color-mix(in oklab, var(--background) 25%, transparent);
+  background-color: color-mix(in oklab, var(--background) 50%, transparent);
   backdrop-filter: blur(5px);
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--foreground) 35%, transparent) transparent;
@@ -172,7 +222,56 @@
   object-fit: contain;
   width: auto;
   height: 16px;
-  filter: invert(0.95)
+  filter: invert(0.95);
+}
+
+.md h1 {
+  margin: 25px 0px;
+  color: var(--color-white);
+  font-size: 24px;
+}
+.md h2 {
+  margin: 20px 0px;
+  color: var(--color-white);
+}
+.md h3 {
+  margin: 15px 0px;
+  color: var(--color-white);
+}
+.md h4 {
+  margin: 10px 0px;
+  color: var(--color-white);
+}
+.md p {
+  margin: 5px 0px;
+  color: color-mix(in oklab, var(--color-white) 75%, var(--color-gray));
+  font-size: 14px;
+}
+.md p:has(img) {
+  display: flex;
+  flex-direction: column;
+}
+.md img {
+  margin: 10px 0px;
+}
+.md ol, .md ul {
+  margin-left: 1.25em;
+  color: var(--color-white);
+}
+.md ol:not(:nth-child(1)) {
+  margin-top: 15px;
+}
+.md ul {
+  list-style-position: inside;
+}
+.md li {
+  margin: 7.5px 0px;
+}
+.md hr {
+  height: 1px;
+  border: 0;
+  margin: 10px 0px;
+  background-color: color-mix(in oklab, var(--foreground) 50%, var(--border));
 }
 
 @media (hover: hover) {
