@@ -23,6 +23,16 @@ const chat_bubble = {
   alt: "chat"
 };
 
+const lock = {
+  src: require("@/public/assets/lock.svg"),
+  alt: "lock"
+};
+
+const hyperlink = {
+  src: require("@/public/assets/hyperlink.svg"),
+  alt: "hyperlink"
+};
+
 const send = {
   src: require("@/public/assets/send.svg"),
   alt: "send"
@@ -47,15 +57,72 @@ const Chat = () => {
   
   const [isWaitResult, setIsWaitResult] = useState<boolean>(false);
 
+  const [oAuthCode, setOAuthCode] = useState<string>("");
+  const [useOAuthGuard, setUseOAuthGuard] = useState<boolean>(false);
+
   const socket = useAgentWebSocket(setChatHistory);
+
+  const importHistoryRef = useRef<boolean>(false);
+  const shouldPostRef = useRef<boolean>(false);
   
   const resetChat = () => {
     setTextQuery("");
     setChatHistory([]);
   };
 
-  const getChatHistory = () => {
+  const getChatHistory = async () => {
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (user.token === "") return;
 
+    importHistoryRef.current = true;
+
+    try {
+      const res = await fetch(`${serverURL}/users/chat/history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token,
+          slug: toggledRoom
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.status === "success") {
+        setChatHistory(data["chat_history"]);
+      }
+    } catch (error) {
+      window.alert("History error");
+      router.reload();
+    }
+  };
+
+  const postChatHistory = async () => {
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (user.token === "") return;
+
+    try {
+      const res = await fetch(`${serverURL}/users/chat/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token,
+          slug: toggledRoom,
+          chat_history: chatHistory
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.status !== "success") {
+        console.error("error:", data["detail"]);
+      }
+    } catch (error) {
+      window.alert("Save error");
+      router.reload();
+    } finally {
+      shouldPostRef.current = false;
+    }
   };
 
   const getAgentDetail = async (slugs: AgentType["slug"][]) => {
@@ -163,6 +230,7 @@ const Chat = () => {
     socket.run(userMessage, toggledRoom, inputName, logId,
       (finalContent?: object) => {
         if (!finalContent) return;
+        shouldPostRef.current = true;
 
         const markdown = renderAgentMarkdown(
           finalContent,
@@ -177,16 +245,12 @@ const Chat = () => {
           timestamp: Date.now()
         };
 
-        setChatHistory(prev => {
-          return [
-            ...prev.map(msg =>
-              msg.id === logId
-                ? { ...msg, status: "done" as const }
-                : msg
-            ),
-            agentMessage
-          ];
-        });
+        setChatHistory(prev => [
+          ...prev.map(msg =>
+            msg.id === logId ? { ...msg, status: "done" as const } : msg
+          ),
+          agentMessage
+        ]);
 
         setIsWaitResult(false);
       },
@@ -259,9 +323,40 @@ const Chat = () => {
     );
 
     setTextQuery("");
-  }
+  };
+
+  const handleClickOAuth = () => {
+    if (!window.google) {
+      alert("Google SDK not loaded");
+      return;
+    }
+
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const client = window.google.accounts.oauth2.initCodeClient({
+      client_id: clientId!,
+      scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose",
+      ux_mode: "popup",
+      callback: (response: any) => {
+        if (response.code) return;
+        setOAuthCode(response.code);
+      }
+    });
+
+    client.requestCode();
+  };
 
   useEffect(() => {
+    if (importHistoryRef.current) {
+      importHistoryRef.current = false;
+      chatboxRef.current?.scrollTo({
+        top: chatboxRef.current.scrollHeight
+      });
+
+      return;
+    }
+
+    if (shouldPostRef.current) postChatHistory();
+
     const lastLog = chatHistory.filter(chat => chat.sender === "log").slice(-1)[0];
     if (!lastLog) return;
 
@@ -273,6 +368,17 @@ const Chat = () => {
       });
     }
   }, [chatHistory]);
+
+  useEffect(() => {
+    if (!toggledAgent) return;
+
+    if (toggledAgent.resources.auth.length > 0) {
+      setUseOAuthGuard(true);
+    }
+    else {
+      setUseOAuthGuard(false);
+    }
+  }, [toggledAgent, router.query]);
 
   useEffect(() => {
     if (toggledRoom === "") return;
@@ -323,16 +429,16 @@ const Chat = () => {
         <div className={clsx(styles.right)}>
           <div ref={chatboxRef} className={clsx(styles.chatbox)}>
             <div className={clsx(styles.chatboxWrapper)}>
-              {chatHistory.map((chat, idx) => chat.sender === "agent"
+              {chatHistory.map((chat) => chat.sender === "agent"
                 ? (
-                  <div className={clsx(styles.md)}>
+                  <div className={clsx(styles.md)} key={chat.id}>
                     <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSchema]]}>
                       {chat.content}
                     </ReactMarkdown>
                   </div>
                 ) : (
-                  <div>
-                    <div ref={el => { if (chat.sender === "log") logboxRefs.current[chat.id] = el; }} className={clsx(styles.chat, { [styles.userChat]: chat.sender === "user", [styles.logChat]: chat.sender === "log" })} key={idx}>
+                  <div key={chat.id}>
+                    <div ref={el => { if (chat.sender === "log") logboxRefs.current[chat.id] = el; }} className={clsx(styles.chat, { [styles.userChat]: chat.sender === "user", [styles.logChat]: chat.sender === "log" })}>
                       <p>{chat.content}</p>
                     </div>
                     {chat.sender === "log" && chat.status === "processing" && (
@@ -346,12 +452,37 @@ const Chat = () => {
           </div>
           <div className={clsx(styles.input)}>
             <div className={clsx(styles.inputWrapper)}>
-              <textarea ref={textareaRef} id="queryText" rows={1} placeholder="Enter message..." value={textQuery} onChange={handleChangeTextQuery} onKeyDown={handlePressShiftEnter} />
+              <textarea ref={textareaRef} id="queryText" rows={1} placeholder={toggledAgent?.inputs[0].placeholder} value={textQuery} onChange={handleChangeTextQuery} onKeyDown={handlePressShiftEnter} />
               <button disabled={textQuery === "" || isWaitResult} onClick={socket.inputRequested ? handleInputResponse : handleSubmit}>
                 <Image src={send.src} alt={send.alt} />
               </button>
             </div>
           </div>
+          {useOAuthGuard && (
+            <div className={clsx(styles.guard)}>
+              <div className={clsx(styles.guardNotice)}>
+                <div className={clsx(styles.noticeContent)}>
+                  <div>
+                    <Image src={lock.src} alt={lock.alt} />
+                  </div>
+                  <div>
+                    <h1>Verification is required.</h1>
+                    <p>To use this Agent, you must verify with your Google account. Once verification is complete, you will have access to all features.</p>
+                  </div>
+                </div>
+                <div className={clsx(styles.noticeOAuth)}>
+                  <button onClick={handleClickOAuth}>
+                    <p>Authenticate with OAuth</p>
+                    <Image src={hyperlink.src} alt={hyperlink.alt} />
+                  </button>
+                </div>
+              </div>
+              <div className={clsx(styles.inputGuard)}>
+                <Image src={lock.src} alt={lock.alt} />
+                <p>You must complete verification to send a message.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </React.Fragment>
