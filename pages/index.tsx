@@ -3,12 +3,14 @@ import Hero from "@/components/Hero";
 import clsx from "clsx";
 import React, { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AgentType } from "@/types/agentTypes";
+import { AgentDetailType, AgentType } from "@/types/agentTypes";
 import { useRouter } from "next/router";
 import { debounceTimer } from "@/utils/timer";
 import { useUser } from "@/contexts/UserContext";
 import TopSticky from "@/components/TopSticky";
 import { useSubscriptions } from "@/contexts/SubscriptionsContext";
+import OverlayPanel from "@/components/OverlayPanel";
+import { toast } from "sonner";
 
 const up_chart = {
   src: require("@/public/assets/up-chart.svg"),
@@ -87,6 +89,7 @@ const Marketplace = () => {
 
   const [agentsData, setAgentsData] = useState<AgentType[]>([]);
   const [agents, setAgents] = useState<AgentType[][]>([]);
+  const [agentDetail, setAgentDetail] = useState<AgentDetailType | null>(null);
 
   const [subscribedSlugs, setSubscribedSlugs] = useState<AgentType["slug"][]>([]);
 
@@ -94,6 +97,7 @@ const Marketplace = () => {
 
   const [toggledTag, setToggledTag] = useState<string>(tag_list[0]);
   const [toggledPage, setToggledPage] = useState<number>(1);
+  const [toggledOverlay, setToggledOverlay] = useState<boolean>(false);
 
   const changeTag = (newTag: string) => {
     setToggledTag(newTag);
@@ -113,6 +117,29 @@ const Marketplace = () => {
     }
 
     return result;
+  };
+
+  const getAgentDetail = async (slug: AgentType["slug"]) => {
+    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
+    if (!serverURL) return;
+
+    try {
+      const res = await fetch(`${serverURL}/api/agents/${slug}`, {
+        method: "GET"
+      });
+
+      const data = await res.json();
+      const detail = data["agent"] as Omit<AgentDetailType, "slug">;
+
+      setAgentDetail({
+        slug,
+        ...detail,
+        modelcard: data.model_card
+      });
+    } catch (error) {
+      window.alert("Get agent detail error");
+      router.reload();
+    }
   };
 
   const getAgents = async () => {
@@ -218,9 +245,28 @@ const Marketplace = () => {
 
     const isReal = dummyData.flat().some(d => d.slug === targetSlug);
     if (isReal) return;
+
+    setToggledOverlay(true);
+    getAgentDetail(targetSlug);
     
-    if (subscribedSlugs.includes(targetSlug)) unSubscribeAgent(targetSlug);
-    else subscribeAgent(targetSlug);
+    // if (subscribedSlugs.includes(targetSlug)) unSubscribeAgent(targetSlug);
+    // else subscribeAgent(targetSlug);
+  };
+
+  const handleSubscribeAgent = async (slug: AgentType["slug"]) => {
+    await subscribeAgent(slug);
+  };
+
+  const handleUseAgent = (slug: AgentType["slug"]) => {
+    if (!subscribedSlugs.includes(slug)) {
+      toast.warning("먼저 Agent를 구독해주세요.");
+      return;
+    }
+    
+    router.push({
+      pathname: "/chat",
+      query: { room: slug }
+    });
   };
 
   const handleChangeSearchValue = (event: ChangeEvent<HTMLInputElement>) => {
@@ -262,6 +308,7 @@ const Marketplace = () => {
 
   return (
     <React.Fragment>
+      <OverlayPanel isOpen={toggledOverlay} onClose={() => setToggledOverlay(false)} onSubscribe={handleSubscribeAgent} onUse={handleUseAgent} subscribed={subscribedSlugs} agentDetail={agentDetail} />
       <TopSticky />
       <Hero />
       <div className={clsx(styles.searchBox)}>

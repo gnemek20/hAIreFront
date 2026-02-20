@@ -66,7 +66,7 @@ const TopSticky = () => {
           ) : (
             <React.Fragment>
               <button onClick={() => router.push("/signin")}>Sign in</button>
-              <button onClick={() => router.push("/signin")}>Sign up</button>
+              <button onClick={() => router.push("/signup")}>Sign up</button>
             </React.Fragment>
           )}
         </div>

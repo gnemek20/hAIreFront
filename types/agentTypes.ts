@@ -50,4 +50,5 @@ export interface AgentDetailType {
   outputs: {
     view_type: string;
   };
+  modelcard: string;
 }

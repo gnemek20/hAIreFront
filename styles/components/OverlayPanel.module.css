@@ -1,0 +1,155 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: color-mix(in oklab, var(--background) 50%, transparent);
+  backdrop-filter: blur(10px);
+  transition: ease-in-out 150ms;
+}
+.closeOverlay {
+  opacity: 0;
+}
+
+.panel {
+  margin: auto;
+  width: 500px;
+  height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in oklab, var(--primary) 25%, transparent);
+  border-radius: 2.5px;
+  background-color: color-mix(in oklab, var(--card) 75%, var(--background));
+  box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--primary) 25%, transparent);
+  transition: ease-in-out 150ms;
+}
+.closePanel {
+  transform: scale(0.95);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  padding: 25px;
+  border-bottom: 1px solid var(--border);
+  gap: 15px;
+}
+.title h1 {
+  color: var(--color-white);
+}
+
+.option {
+  display: flex;
+  padding: 25px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+  gap: 15px;
+}
+.option button {
+  flex: 1;
+  cursor: pointer;
+  padding: 7.5px 15px;
+  border-radius: 2.5px;
+  font-weight: bold;
+  outline: none;
+  transition: ease-in-out 150ms;
+}
+
+.content {
+  padding: 25px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 50%, transparent) transparent;
+}
+
+.closeButton {
+  border: 1px solid var(--border);
+  color: var(--color-white);
+  background-color: transparent;
+}
+.subscribeButton {
+  border: 1px solid var(--secondary);
+  color: var(--color-black);
+  background-color: var(--secondary);
+}
+.useButton {
+  border: 1px solid var(--primary);
+  color: var(--color-black);
+  background-color: var(--primary);
+  box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--primary) 35%, transparent);
+}
+
+.md h1 {
+  margin: 25px 0px;
+  color: var(--color-white);
+  font-size: 24px;
+}
+.md h2 {
+  margin: 20px 0px;
+  color: var(--color-white);
+}
+.md h3 {
+  margin: 15px 0px;
+  color: var(--color-white);
+}
+.md h4 {
+  margin: 10px 0px;
+  color: var(--color-white);
+}
+.md p {
+  margin: 5px 0px;
+  color: color-mix(in oklab, var(--color-white) 75%, var(--color-gray));
+  font-size: 14px;
+}
+.md p:has(img) {
+  display: flex;
+  flex-direction: column;
+}
+.md a {
+  color: color-mix(in oklab, var(--primary) 50%, var(--color-gray));
+}
+.md a:visited {
+  color: color-mix(in oklab, var(--secondary) 50%, var(--color-gray));
+}
+.md img {
+  margin: 10px 0px;
+}
+.md ol, .md ul {
+  margin-left: 1.25em;
+  color: var(--color-white);
+}
+.md ol:not(:nth-child(1)) {
+  margin-top: 15px;
+}
+.md ul {
+  list-style-position: inside;
+}
+.md li {
+  margin: 7.5px 0px;
+}
+.md hr {
+  height: 1px;
+  border: 0;
+  margin: 10px 0px;
+  background-color: color-mix(in oklab, var(--foreground) 50%, var(--border));
+}
+.md th {
+  color: var(--color-white);
+}
+.md td {
+  color: var(--color-white);
+}
+.md strong {
+  color: var(--color-white);
+}
+
+@media (hover: hover) {
+  .option button:hover {
+    opacity: 0.65;
+  }
+  .closeButton:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+  }
+}
