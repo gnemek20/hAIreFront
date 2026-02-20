@@ -32,6 +32,7 @@ const TopSticky = () => {
     const pathname = router.pathname;
 
     if (pathname === "/") setToggled("find");
+    else if (pathname === "/share") setToggled("share");
     else if (pathname === "/chat") setToggled("chat");
   }, [router.pathname]);
 
@@ -46,11 +47,8 @@ const TopSticky = () => {
           <div className={clsx({ [styles.toggled]: toggled === "find" })} onClick={() => router.push("/")}>
             <p>Find Agent</p>
           </div>
-          <div className={clsx({ [styles.toggled]: toggled === "share" })}>
+          <div className={clsx({ [styles.toggled]: toggled === "share" })} onClick={() => router.push("/share")}>
             <p>Share Agent</p>
-          </div>
-          <div className={clsx({ [styles.toggled]: toggled === "own" })}>
-            <p>My Agent</p>
           </div>
           <div className={clsx({ [styles.toggled]: toggled === "chat" })} onClick={() => router.push("/chat")}>
             <p>Chat Agent</p>

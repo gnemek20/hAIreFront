@@ -3,6 +3,7 @@
   top: 0;
   left: 0;
   z-index: 1;
+  border-bottom: 1px solid var(--border);
   background-color: color-mix(in oklab, var(--background) 80%, transparent);
   backdrop-filter: blur(7.5px);
 }
@@ -11,7 +12,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 80rem;
+  max-width: 1400px;
   width: 95dvw;
   height: 60px;
   margin: 0 auto;

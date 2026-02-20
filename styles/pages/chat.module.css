@@ -15,7 +15,7 @@
 
 .container {
   display: flex;
-  height: calc(100dvh - 60px);
+  height: calc(100dvh - 61px);
 }
 
 .left {

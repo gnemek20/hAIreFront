@@ -1,5 +1,4 @@
-export type WorkType = "find" | "share" | "use";
-export type CategoryType = "find" | "share" | "own" | "chat";
+export type CategoryType = "find" | "share" | "chat";
 
 export interface AgentType {
   slug: string;

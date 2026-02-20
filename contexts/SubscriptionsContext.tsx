@@ -15,10 +15,10 @@ export const SubscriptionsProvider = ({ children }: { children: ReactNode }) => 
     setSubscriptions(newSubs);
     sessionStorage.setItem("subscriptions", JSON.stringify(newSubs));
   };
-
+  
   useEffect(() => {
     if (typeof window === "undefined") return;
-
+    
     const savedSubs = sessionStorage.getItem("subscriptions");
     if (savedSubs) setSubscriptions(JSON.parse(savedSubs));
   }, []);

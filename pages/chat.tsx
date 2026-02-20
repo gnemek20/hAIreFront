@@ -72,7 +72,7 @@ const Chat = () => {
 
   const getChatHistory = async () => {
     const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
-    if (user.token === "") return;
+    if (user.token === "" || !toggledRoom) return;
 
     importHistoryRef.current = true;
 
@@ -157,20 +157,45 @@ const Chat = () => {
 
     const textarea = textareaRef.current;
     const lineHeight = 20;
+    const minLines = 1;
     const maxLines = 5;
-    const maxHeight = lineHeight * maxLines;
+
+    let mirror = document.getElementById("textarea-mirror") as HTMLDivElement;
+    if (!mirror) {
+      mirror = document.createElement("div");
+      mirror.id = "textarea-mirror";
+      document.body.appendChild(mirror);
+
+      Object.assign(mirror.style, {
+        position: "absolute",
+        top: "-9999px",
+        left: "-9999px",
+        visibility: "hidden",
+        whiteSpace: "pre-wrap",
+        wordWrap: "break-word",
+      });
+    }
+
+    const style = window.getComputedStyle(textarea);
+    mirror.style.width = style.width;
+    mirror.style.fontSize = style.fontSize;
+    mirror.style.fontFamily = style.fontFamily;
+    mirror.style.fontWeight = style.fontWeight;
+    mirror.style.lineHeight = style.lineHeight;
+    mirror.style.padding = style.padding;
+    mirror.style.border = style.border;
+
+    mirror.textContent = textarea.value || " ";
+
+    const contentHeight = mirror.scrollHeight;
+    const wrappedLines = Math.max(0, Math.round(contentHeight / lineHeight) - 1);
 
     const lines = textarea.value.split("\n").length || 1;
+    const newHeight = Math.max(lines, wrappedLines) * lineHeight;
 
-    if (lines <= maxLines) {
-      textarea.style.height = `${lines * lineHeight}px`;
-      textarea.style.overflowY = "hidden";
-    }
-    else {
-      textarea.style.height = `${maxHeight}px`;
-      textarea.style.overflowY = "auto";
-    }
-  }
+    textarea.style.height = `${newHeight}px`;
+    textarea.style.overflowY = lines > maxLines ? "auto" : "hidden";
+  };
 
   const handleClickRoom = (target: AgentType["slug"]) => {
     resetChat();

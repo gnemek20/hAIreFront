@@ -1,6 +1,8 @@
 import SignHeader from "@/components/SignHeader";
+import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 import { useUser } from "@/contexts/UserContext";
 import styles from "@/styles/pages/signin.module.css";
+import { AgentType } from "@/types/agentTypes";
 import clsx from "clsx";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -14,12 +16,41 @@ const right_arrow = {
 const SignIn = () => {
   const router = useRouter();
   const user = useUser();
+  const subscriptions = useSubscriptions();
 
   const [id, setId] = useState<string>("");
   const [pwd, setPwd] = useState<string>("");
 
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const getSubscriptions = async () => {
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!user.token) return;
+
+    try {
+      const res = await fetch(`${serverURL}/users/subscriptions/list`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const subs = data["subscriptions"] as AgentType["slug"][];
+        subscriptions.setSubs(subs);
+      }
+      else {
+        console.error("Get subscriptions failed:", data.detail || data);
+      }
+    } catch (error) {
+      window.alert("Get subscriptions error");
+      router.reload();
+    }
+  };
 
   const signIn = async () => {
     if (isLoading || isDisabled) return;
@@ -52,6 +83,7 @@ const SignIn = () => {
       }
 
       user.signIn(data["access_token"], data["username"]);
+      await getSubscriptions();
 
       const redirect = router.query["redirect"] as string;
       router.replace(redirect ? redirect : "/");

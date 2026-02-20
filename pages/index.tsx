@@ -134,33 +134,6 @@ const Marketplace = () => {
     }
   };
 
-  const getSubscriptions = async () => {
-    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
-    if (!user.token) return;
-
-    try {
-      const res = await fetch(`${serverURL}/users/subscriptions/list`, {
-        method: "POST",
-        headers: { "Content-Type": "applicatiuon/json" },
-        body: JSON.stringify({
-          access_token: user.token
-        })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setSubscribedSlugs(data["subscriptions"]);
-      }
-      else {
-        console.error("Get subscriptions failed:", data.detail || data);
-      }
-    } catch (error) {
-      window.alert("Get subscriptions error");
-      router.reload();
-    }
-  };
-
   const searchAgents = () => {
     if (agentsData.length === 0) return;
 
@@ -194,7 +167,9 @@ const Marketplace = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setSubscribedSlugs([...subscribedSlugs, newSlug]);
+        const newSubscription = [...subscribedSlugs, newSlug];
+        subscriptions.setSubs(newSubscription)
+        setSubscribedSlugs(newSubscription);
       }
       else {
         console.error("Subscribe failed:", data.detail || data);
@@ -222,7 +197,9 @@ const Marketplace = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setSubscribedSlugs(subscribedSlugs.filter(slug => slug !== targetSlug));
+        const newSubscription = subscribedSlugs.filter(slug => slug !== targetSlug);
+        subscriptions.setSubs(newSubscription);
+        setSubscribedSlugs(newSubscription);
       }
       else {
         console.error("unSubscribe failed:", data.detail || data);
@@ -239,6 +216,9 @@ const Marketplace = () => {
       return;
     }
 
+    const isReal = dummyData.flat().some(d => d.slug === targetSlug);
+    if (isReal) return;
+    
     if (subscribedSlugs.includes(targetSlug)) unSubscribeAgent(targetSlug);
     else subscribeAgent(targetSlug);
   };
@@ -265,16 +245,12 @@ const Marketplace = () => {
   }, [agentsData]);
 
   useEffect(() => {
-    subscriptions.setSubs(subscribedSlugs);
-  }, [subscribedSlugs]);
-
-  useEffect(() => {
     if (!user.hasAuth()) {
       setSubscribedSlugs([]);
       return;
     }
     
-    getSubscriptions();
+    setSubscribedSlugs(subscriptions.subs);
   }, [user.token]);
 
   useEffect(() => {
@@ -345,13 +321,15 @@ const Marketplace = () => {
               </div>
             ))}
           </div>
-          <div className={clsx(styles.listIndex)}>
-            {agents.map((_, idx) => (
-              <div className={clsx({ [styles.toggledIndex]: toggledPage === idx + 1 })} onClick={() => changePage(idx + 1)} key={idx}>
-                <p>{idx + 1}</p>
-              </div>
-            ))}
-          </div>
+          {agents.length > 1 && (
+            <div className={clsx(styles.listIndex)}>
+              {agents.map((_, idx) => (
+                <div className={clsx({ [styles.toggledIndex]: toggledPage === idx + 1 })} onClick={() => changePage(idx + 1)} key={idx}>
+                  <p>{idx + 1}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </React.Fragment>

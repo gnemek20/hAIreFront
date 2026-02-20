@@ -32,10 +32,29 @@ const Test = () => {
     console.log(data);
   }
 
+  const deleteGW = async () => {
+    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
+    if (!serverURL) return;
+
+    const slug = "email-ghostwriter-2";
+
+    try {
+      const res = await fetch((`${serverURL}/api/agents/${slug}`), {
+        method: "DELETE"
+      });
+
+      const data = await res.json();
+      console.log(data);
+    } catch (error) {
+      window.alert(error)
+    };
+  };
+
   return (
     <div>
       <button onClick={() => router.push(githubAuthUrl)}>login</button>
       <button onClick={handleCreateRepo}>sansing</button>
+      <button onClick={deleteGW}>delete ghost writer</button>
     </div>
   );
 };
