@@ -111,6 +111,14 @@ const Share = () => {
       if (data.status === "deployed") {
         removeFile();
         toast.success("Agent uploaded.");
+        const newAgent: AgentType = {
+          slug: data.slug,
+          name: data.name,
+          version: data.version,
+          description: data.description,
+          price: data.price,
+          icon: data.icon
+        };
       }
       else {
         console.error(data.detail);
@@ -204,6 +212,15 @@ const Share = () => {
   }, [router.query]);
 
   useEffect(() => {
+    if (!user.hasAuth()) {
+      router.push({
+        pathname: "/signin",
+        query: { redirect: router.pathname }
+      });
+
+      return;
+    }
+
     getMyAgents();
   }, [user.token]);
 

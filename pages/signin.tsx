@@ -24,21 +24,21 @@ const SignIn = () => {
   const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const getSubscriptions = async () => {
+  const getSubscriptions = async (token: string) => {
     const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
-    if (!user.token) return;
-
+    if (token === "") return;
+    
     try {
       const res = await fetch(`${serverURL}/users/subscriptions/list`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_token: user.token
+          access_token: token
         })
       });
-
+      
       const data = await res.json();
-
+      
       if (res.ok) {
         const subs = data["subscriptions"] as AgentType["slug"][];
         subscriptions.setSubs(subs);
@@ -83,7 +83,7 @@ const SignIn = () => {
       }
 
       user.signIn(data["access_token"], data["username"]);
-      await getSubscriptions();
+      await getSubscriptions(data["access_token"]);
 
       const redirect = router.query["redirect"] as string;
       router.replace(redirect ? redirect : "/");
