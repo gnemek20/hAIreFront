@@ -61,6 +61,69 @@ const Share = () => {
     setMyAgents(sliced);
   };
 
+  const postUserAgent = async (newAgent: AgentType) => {
+    if (user.token === "") return;
+    
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!serverURL) return;
+
+    try {
+      const res = await fetch(`${serverURL}/users/agents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token,
+          agent: newAgent
+        })
+      });
+      
+      const data = await res.json();
+
+      if (res.ok) {
+        const finalAgents = [...myAgents.flat(), newAgent];
+        computeAgents(finalAgents);
+      }
+      else {
+        console.error(data);
+      }
+    } catch (error) {
+      window.alert("Server error");
+      // router.reload();
+    }
+  };
+  
+  const deleteUserAgent = async (targetSlug: AgentType["slug"]) => {
+    // if (user.token === "") return;
+    
+    // const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    // if (!serverURL) return;
+  
+    // try {
+    //   const res = await fetch(`${serverURL}/users/agents`, {
+    //     method: "DELETE",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({
+    //       access_token: user.token,
+    //       slug: targetSlug
+    //     })
+    //   });
+      
+    //   const data = await res.json();
+  
+    //   if (res.ok) {
+    //     const finalAgents = [...myAgents.flat().filter(ag => ag.slug !== targetSlug)];
+    //     computeAgents(finalAgents);
+    //     toast.success("Agent deleted.");
+    //   }
+    //   else {
+    //     console.error("Delete user agent failed", data);
+    //   }
+    // } catch (error) {
+    //   window.alert("Server error");
+    //   // router.reload();
+    // }
+  }
+
   const getMyAgents = async () => {
     // if (user.token === "") return;
 
@@ -119,6 +182,10 @@ const Share = () => {
           price: data.price,
           icon: data.icon
         };
+
+        // await postAgent(newAgent);
+        const finalAgents = [...myAgents.flat(), newAgent];
+        computeAgents(finalAgents);
       }
       else {
         console.error(data.detail);
@@ -133,27 +200,30 @@ const Share = () => {
   };
 
   const deleteAgent = async (slug: AgentType["slug"]) => {
-    // const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
-    // if (!serverURL) return;
+    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
+    if (!serverURL) return;
 
-    // try {
-    //   const res = await fetch(`${serverURL}/api/agents/${slug}`, {
-    //     method: "DELETE"
-    //   });
+    try {
+      const res = await fetch(`${serverURL}/api/agents/${slug}`, {
+        method: "DELETE"
+      });
 
-    //   const data = await res.json();
+      const data = await res.json();
 
-    //   if (data.status === "200") {
-    //     toast.success("Agent deleted.");
-    //   }
-    //   else {
-    //     console.error(data.detail);
-    //     toast.error(`Delete failed: ${data.detail}`);
-    //   }
-    // } catch (error) {
-    //   window.alert("Delete error");
-    //   router.reload();
-    // }
+      if (data.status === "deleted") {
+        // await deleteUserAgent(slug);
+        const finalAgents = [...myAgents.flat().filter(ag => ag.slug !== slug)];
+        computeAgents(finalAgents);
+        toast.success("Agent deleted.");
+      }
+      else {
+        console.error(data.detail);
+        toast.error(`Delete failed: ${data.detail}`);
+      }
+    } catch (error) {
+      window.alert("Delete error");
+      router.reload();
+    }
   };
 
   const removeFile = () => {

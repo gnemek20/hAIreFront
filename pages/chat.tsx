@@ -157,7 +157,6 @@ const Chat = () => {
 
     const textarea = textareaRef.current;
     const lineHeight = 20;
-    const minLines = 1;
     const maxLines = 5;
 
     let mirror = document.getElementById("textarea-mirror") as HTMLDivElement;
@@ -252,7 +251,7 @@ const Chat = () => {
       }
     ]);
 
-    socket.run(userMessage, toggledRoom, inputName, logId,
+    socket.run(userMessage, toggledRoom, inputName, logId, oAuthCode || undefined,
       (finalContent?: object) => {
         if (!finalContent) return;
         shouldPostRef.current = true;
@@ -289,7 +288,7 @@ const Chat = () => {
             return msg;
           })
         );
-      }
+      },
     );
 
     setTextQuery("");
@@ -362,11 +361,12 @@ const Chat = () => {
       scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose",
       ux_mode: "popup",
       callback: (response: any) => {
-        if (response.code) return;
+        if (!response.code) return;
         setOAuthCode(response.code);
+        setUseOAuthGuard(false);
       }
     });
-
+    
     client.requestCode();
   };
 

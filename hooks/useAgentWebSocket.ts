@@ -3,7 +3,7 @@ import { ChatMessage } from "@/types/chatTypes";
 
 interface WSMessage {
   type: "output" | "input_request" | "result" | "error" | "done";
-  data?: unknown;   // ← string → unknown 으로 변경
+  data?: unknown;
   traceback?: string;
 }
 
@@ -13,6 +13,7 @@ interface AgentWSHook {
     slug: string,
     inputName: string,
     logId?: string,
+    authCode?: string,
     onDone?: (finalContent?: object) => void,
     onLog?: (logContent: string) => void
   ) => void;
@@ -63,12 +64,12 @@ export function useAgentWebSocket(
 
           if (typeof msg.data === "string") {
             try {
-              finalContent = JSON.parse(msg.data); // 문자열이면 JSON 파싱 시도
+              finalContent = JSON.parse(msg.data);
             } catch {
-              finalContent = { value: msg.data }; // JSON이 아니면 래핑
+              finalContent = { value: msg.data };
             }
           } else if (typeof msg.data === "object" && msg.data !== null) {
-            finalContent = msg.data; // 이미 객체라면 그대로 전달
+            finalContent = msg.data;
           }
 
           onDone(finalContent);
@@ -94,6 +95,7 @@ export function useAgentWebSocket(
     slug: string,
     inputName: string,
     logId?: string,
+    authCode?: string,
     onDone?: (finalContent?: object) => void,
     onLog?: (logContent: string) => void
   ) => {
@@ -108,12 +110,11 @@ export function useAgentWebSocket(
     setInputRequested(false);
 
     ws.onopen = () => {
-      ws.send(
-        JSON.stringify({
-          type: "start",
-          inputs: { [inputName]: userMessage.content }
-        })
-      );
+      const inputs: Record<string, string> = { [inputName]: userMessage.content };
+      if (authCode) {
+        inputs["auth_code"] = authCode;
+      }
+      ws.send(JSON.stringify({ type: "start", inputs }));
     };
 
     ws.onmessage = (event) =>
