@@ -24,6 +24,58 @@ const file_icon = {
   alt: "file"
 };
 
+const test_yaml = `# ==============================================================================
+# hAIre Agent Configuration v1.1
+# ==============================================================================
+
+# 1. Identity
+info:
+  slug: "email-ghostwriter"
+  name: "이메일 고스트라이터"
+  version: "1.0.0"
+  description: "읽지 않은 메일을 분석하고, 거절/수락 답장을 대신 작성해줍니다."
+  price: 500
+  icon: "📧"
+
+# 2. Runtime
+run:
+  engine: "python-3.13"
+  entry_point: "email_ghostwriter.main:main"
+  dependencies: "requirements.txt"
+
+# 3. Resources
+resources:
+  llm:
+    provider: "openai"
+    model: "gpt-5-mini-2025-08-07"
+    parameters:
+      temperature: 0.7
+      max_tokens: 4096
+
+  auth:
+    - provider: "google"
+      service_name: "gmail_access"
+      scopes:
+        - "gmail.readonly"
+        - "gmail.compose"
+
+# 4. Inputs
+inputs:
+  - name: "instruction"
+    type: "text_area"
+    label: "요청 사항"
+    placeholder: "견적 요청 관련 메일 3개만 가져와"
+    required: true
+    examples:
+      - "견적 요청 관련 메일 3개만 가져와"
+      - "미팅 제안 메일"
+      - "이번 주 온 메일 5개"
+
+# 5. Outputs
+outputs:
+  view_type: "email_draft_list"
+`;
+
 const Share = () => {
   const router = useRouter();
   const user = useUser();
@@ -32,6 +84,9 @@ const Share = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
+
+  const [githubURL, setGithubURL] = useState<string>("");
+  const [yaml, setYaml] = useState<string>("");
 
   const [myAgents, setMyAgents] = useState<AgentType[][]>([]);
 
@@ -93,35 +148,35 @@ const Share = () => {
   };
   
   const deleteUserAgent = async (targetSlug: AgentType["slug"]) => {
-    // if (user.token === "") return;
+    if (user.token === "") return;
     
-    // const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
-    // if (!serverURL) return;
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!serverURL) return;
   
-    // try {
-    //   const res = await fetch(`${serverURL}/users/agents`, {
-    //     method: "DELETE",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       access_token: user.token,
-    //       slug: targetSlug
-    //     })
-    //   });
+    try {
+      const res = await fetch(`${serverURL}/users/agents`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token,
+          slug: targetSlug
+        })
+      });
       
-    //   const data = await res.json();
+      const data = await res.json();
   
-    //   if (res.ok) {
-    //     const finalAgents = [...myAgents.flat().filter(ag => ag.slug !== targetSlug)];
-    //     computeAgents(finalAgents);
-    //     toast.success("Agent deleted.");
-    //   }
-    //   else {
-    //     console.error("Delete user agent failed", data);
-    //   }
-    // } catch (error) {
-    //   window.alert("Server error");
-    //   // router.reload();
-    // }
+      if (res.ok) {
+        const finalAgents = [...myAgents.flat().filter(ag => ag.slug !== targetSlug)];
+        computeAgents(finalAgents);
+        toast.success("Agent deleted.");
+      }
+      else {
+        console.error("Delete user agent failed", data);
+      }
+    } catch (error) {
+      window.alert("Server error");
+      // router.reload();
+    }
   }
 
   const getMyAgents = async () => {
@@ -233,6 +288,10 @@ const Share = () => {
     setFile(null);
   };
 
+  const handleClickGenerateYaml = () => {
+    setYaml(test_yaml);
+  };
+
   const handleChangeFile = (event: ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const files = target.files;
@@ -311,44 +370,60 @@ const Share = () => {
           </div>
           <div className={clsx(styles.sharing)}>
             <div className={clsx(styles.left)}>
-              <div className={clsx(styles.leftWrapper)}>
-                <div className={clsx(styles.leftContainer)}>
-                  <div className={clsx(styles.shareTitle)}>
-                    <Image src={upload_icon.src} alt={upload_icon.alt} />
-                    <h4>upload new Agent</h4>
-                  </div>
-                  <div className={clsx(styles.shareFile)}>
-                    <label className={clsx({ [styles.dragging]: isDragging })} htmlFor="file" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
-                      <div className={clsx(styles.fileUploadIcon, { [styles.fileUploaded]: file })}>
+              <div className={clsx(styles.stickyLeft)}>
+                <div className={clsx(styles.leftWrapper)}>
+                  <div className={clsx(styles.leftContainer)}>
+                    <div className={clsx(styles.shareTitle)}>
+                      <Image src={upload_icon.src} alt={upload_icon.alt} />
+                      <h4>upload new Agent</h4>
+                    </div>
+                    <div className={clsx(styles.shareFile)}>
+                      <label className={clsx({ [styles.dragging]: isDragging })} htmlFor="file" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+                        <div className={clsx(styles.fileUploadIcon, { [styles.fileUploaded]: file })}>
+                          {file && (
+                            <Image src={file_icon.src} alt={file_icon.alt} />
+                          )}
+                          {!file && (
+                            <Image src={upload_icon.src} alt={upload_icon.alt} />
+                          )}
+                        </div>
                         {file && (
-                          <Image src={file_icon.src} alt={file_icon.alt} />
+                          <React.Fragment>
+                            <h4>{file.name}</h4>
+                            <p>{`${(file.size / 1024 / 1024).toFixed(2)}MB`}</p>
+                            <button onClick={handleRemoveFile}>Remove File</button>
+                          </React.Fragment>
                         )}
                         {!file && (
-                          <Image src={upload_icon.src} alt={upload_icon.alt} />
+                          <React.Fragment>
+                            <h4>drag ZIP file</h4>
+                            <p>or click to select file</p>
+                          </React.Fragment>
                         )}
-                      </div>
-                      {file && (
-                        <React.Fragment>
-                          <h4>{file.name}</h4>
-                          <p>{`${(file.size / 1024 / 1024).toFixed(2)}MB`}</p>
-                          <button onClick={handleRemoveFile}>Remove File</button>
-                        </React.Fragment>
-                      )}
-                      {!file && (
-                        <React.Fragment>
-                          <h4>drag ZIP file</h4>
-                          <p>or click to select file</p>
-                        </React.Fragment>
-                      )}
-                    </label>
-                    <input ref={inputRef} id="file" type="file" accept="application/zip" onChange={handleChangeFile} />
-                    <button className={clsx({ [styles.loading]: isLoading })} disabled={!file || isLoading} onClick={deployAgent}>
-                      <Image src={upload_icon.src} alt={upload_icon.alt} />
-                      <p>{isLoading ? "Sharing Agent..." : "Share Agent"}</p>
-                    </button>
+                      </label>
+                      <input ref={inputRef} id="file" type="file" accept="application/zip" onChange={handleChangeFile} />
+                      <button className={clsx({ [styles.loading]: isLoading })} disabled={!file || isLoading} onClick={deployAgent}>
+                        <Image src={upload_icon.src} alt={upload_icon.alt} />
+                        <p>{isLoading ? "Sharing Agent..." : "Share Agent"}</p>
+                      </button>
+                    </div>
+                    <div className={clsx(styles.shareNotice)}>
+                      <p>ZIP file must include an agent.yaml file. Basic information will be automatically extracted from the YAML file.</p>
+                    </div>
                   </div>
-                  <div className={clsx(styles.shareNotice)}>
-                    <p>ZIP file must include an agent.yaml file. Basic information will be automatically extracted from the YAML file.</p>
+                </div>
+                <div className={clsx(styles.yamlGenerator)}>
+                  <div className={clsx(styles.generatorInput)}>
+                    <input type="text" placeholder="Enter your Github URL..." />
+                    <button onClick={handleClickGenerateYaml}>Generate</button>
+                  </div>
+                  <div className={clsx(styles.yamlLog)}>
+                    {yaml === "" && (
+                      <p>The YAML will be displayed here.</p>
+                    )}
+                    {yaml !== "" && (
+                      <p>{yaml}</p>
+                    )}
                   </div>
                 </div>
               </div>

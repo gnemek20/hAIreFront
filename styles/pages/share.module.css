@@ -63,11 +63,16 @@
   display: flex;
   flex-direction: column;
 }
-.leftWrapper {
+.stickyLeft {
   position: sticky;
   top: 150px;
   display: flex;
+  flex-direction: column;
   width: 450px;
+  gap: 30px;
+}
+.leftWrapper {
+  display: flex;
   border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent);
   border-radius: 2.5px;
   background-color: color-mix(in oklab, var(--primary) 10%, transparent);
@@ -206,6 +211,55 @@
 .shareNotice p {
   color: var(--color-gray);
   text-align: center;
+  font-size: 12px;
+}
+
+.yamlGenerator {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
+  border-radius: 2.5px;
+  background-color: color-mix(in oklab, var(--secondary) 10%, transparent);
+  gap: 15px;
+}
+
+.generatorInput {
+  display: flex;
+  gap: 15px;
+}
+.generatorInput input {
+  flex: 1;
+  padding: 5px 15px;
+  border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent);
+  border-radius: 2.5px;
+  color: color-mix(in oklab, var(--color-white) 90%, var(--color-gray));
+  background-color: color-mix(in oklab, var(--primary) 10%, transparent);
+  outline: none; 
+}
+.generatorInput button {
+  cursor: pointer;
+  padding: 5px 15px;
+  border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
+  border-radius: 2.5px;
+  color: var(--color-black);
+  font-weight: bold;
+  background-color: color-mix(in oklab, var(--secondary) 65%, transparent);
+}
+
+.yamlLog {
+  max-height: 150px;
+  padding: 5px 15px;
+  border: 1px solid color-mix(in oklab, var(--accent) 50%, transparent);
+  border-radius: 2.5px;
+  background-color: color-mix(in oklab, var(--accent) 10%, transparent);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--accent) 10%, transparent) transparent;
+}
+.yamlLog p {
+  color: var(--color-gray);
+  white-space: pre;
   font-size: 12px;
 }
 
