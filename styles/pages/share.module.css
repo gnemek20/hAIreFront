@@ -463,8 +463,7 @@
   .sharing {
     flex-direction: column;
   }
-  .leftWrapper {
-    max-width: 48rem;
+  .stickyLeft {
     width: 100%;
   }
 
