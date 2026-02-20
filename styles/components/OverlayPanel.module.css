@@ -69,10 +69,26 @@
   color: var(--color-white);
   background-color: transparent;
 }
+.subsButton {
+  transition: ease-in-out 150ms;
+}
+.subsButton:disabled {
+  opacity: 0.25;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
 .subscribeButton {
   border: 1px solid var(--secondary);
   color: var(--color-black);
   background-color: var(--secondary);
+}
+.unSubscribeButton {
+  border: 1px solid var(--destructive);
+  color: var(--color-white);
+  background-color: color-mix(in oklab, var(--destructive) 35%, transparent);
 }
 .useButton {
   border: 1px solid var(--primary);

@@ -253,8 +253,14 @@ const Marketplace = () => {
     // else subscribeAgent(targetSlug);
   };
 
-  const handleSubscribeAgent = async (slug: AgentType["slug"]) => {
+  const handleSubscribeAgent = async (slug: AgentType["slug"], callback?: () => void) => {
     await subscribeAgent(slug);
+    if (callback) callback();
+  };
+
+  const handleUnSubscribeAgent = async (slug: AgentType["slug"], callback?: () => void) => {
+    await unSubscribeAgent(slug);
+    if (callback) callback();
   };
 
   const handleUseAgent = (slug: AgentType["slug"]) => {
@@ -308,7 +314,7 @@ const Marketplace = () => {
 
   return (
     <React.Fragment>
-      <OverlayPanel isOpen={toggledOverlay} onClose={() => setToggledOverlay(false)} onSubscribe={handleSubscribeAgent} onUse={handleUseAgent} subscribed={subscribedSlugs} agentDetail={agentDetail} />
+      <OverlayPanel isOpen={toggledOverlay} onClose={() => setToggledOverlay(false)} onSubscribe={handleSubscribeAgent} onUnSubscribe={handleUnSubscribeAgent} onUse={handleUseAgent} subscribed={subscribedSlugs} agentDetail={agentDetail} />
       <TopSticky />
       <Hero />
       <div className={clsx(styles.searchBox)}>

@@ -1,7 +1,7 @@
 import styles from "@/styles/components/OverlayPanel.module.css"
 import { AgentDetailType, AgentType } from "@/types/agentTypes";
 import clsx from "clsx";
-import React, { PointerEvent, useEffect, useRef } from "react";
+import React, { PointerEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -13,7 +13,8 @@ import katexSchema from "@/katexSchema";
 interface OverlayPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubscribe: (slug: AgentType["slug"]) => void;
+  onSubscribe: (slug: AgentType["slug"], callback?: () => void) => void;
+  onUnSubscribe: (slug: AgentType["slug"], callback?: () => void) => void;
   onUse: (slug: AgentType["slug"]) => void;
   subscribed: AgentType["slug"][];
   agentDetail: AgentDetailType | null;
@@ -23,9 +24,27 @@ interface OverlayPanelProps {
 const OverlayPanel = (props: OverlayPanelProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
 
+  const [isSubLoading, setIsSubLoading] = useState<boolean>(false);
+
   const handleClickBackground = (event: PointerEvent<HTMLDivElement>) => {
     const target = event.target;
     if (target === overlayRef.current) props.onClose();
+  };
+
+  const handleClickSubscribe = () => {
+    if (!props.agentDetail || isSubLoading) return;
+    setIsSubLoading(true);
+    props.onSubscribe(props.agentDetail.slug, () => {
+      setIsSubLoading(false);
+    });
+  };
+
+  const handleClickUnSubscribe = () => {
+    if (!props.agentDetail || isSubLoading) return;
+    setIsSubLoading(true);
+    props.onUnSubscribe(props.agentDetail.slug, () => {
+      setIsSubLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -64,7 +83,14 @@ const OverlayPanel = (props: OverlayPanelProps) => {
             <div className={clsx(styles.option)}>
               <button className={clsx(styles.closeButton)} onClick={props.onClose}>닫기</button>
               {!props.subscribed.includes(props.agentDetail.slug) && (
-                <button className={clsx(styles.subscribeButton)} onClick={() => props.onSubscribe(props.agentDetail!.slug)}>구독하기</button>
+                <button className={clsx(styles.subsButton, styles.subscribeButton)} disabled={isSubLoading} onClick={handleClickSubscribe}>
+                  {isSubLoading ? "구독중..." : "구독하기"}
+                </button>
+              )}
+              {props.subscribed.includes(props.agentDetail.slug) && (
+                <button className={clsx(styles.subsButton, styles.unSubscribeButton)} disabled={isSubLoading} onClick={handleClickUnSubscribe}>
+                  {isSubLoading ? "취소중..." : "구독취소"}
+                </button>
               )}
               <button className={clsx(styles.useButton)} onClick={() => props.onUse(props.agentDetail!.slug)}>사용하기</button>
             </div>
