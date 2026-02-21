@@ -3,6 +3,7 @@ import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 import { useUser } from "@/contexts/UserContext";
 import styles from "@/styles/pages/share.module.css";
 import { AgentType } from "@/types/agentTypes";
+import { ApiError, apiFetch } from "@/utils/api";
 import clsx from "clsx";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -88,12 +89,15 @@ const Share = () => {
   const [githubURL, setGithubURL] = useState<string>("");
   const [yaml, setYaml] = useState<string>("");
 
-  const [myAgents, setMyAgents] = useState<AgentType[][]>([]);
+  const [userAgents, setUserAgents] = useState<AgentType[][]>([]);
 
   const [toggledPage, setToggledPage] = useState<number>(1);
   
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFileDragging, setIsFileDragging] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const changePage = (newPage: number) => {
     router.push({
@@ -111,19 +115,80 @@ const Share = () => {
     return result;
   };
 
-  const computeAgents = (candidates: AgentType[]) => {
-    const sliced = sliceArray(candidates);
-    setMyAgents(sliced);
+  const sliceAgents = (agents: AgentType[]): AgentType[][] => {
+    const sliced = sliceArray(agents);
+    return sliced;
   };
 
-  const postUserAgent = async (newAgent: AgentType) => {
-    if (user.token === "") return;
-    
+  const handlePushUserAgent = (newAgent: AgentType) => {
+    setUserAgents(prev => {
+      const pushed: AgentType[] = [...prev.flat(), newAgent];
+      const sliced: AgentType[][] = sliceAgents(pushed);
+
+      return sliced;
+    });
+  };
+
+  const handleDeleteUserAgent = (targetAgent: AgentType) => {
+    setUserAgents(prev => {
+      const deleted: AgentType[] = [...prev.flat().filter(agent => agent !== targetAgent)];
+      const sliced: AgentType[][] = sliceAgents(deleted);
+
+      return sliced;
+    });
+  }
+
+  const getUserAgents = async () => {
+    if (!user.token) return;
+
     const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
     if (!serverURL) return;
 
     try {
-      const res = await fetch(`${serverURL}/users/agents`, {
+      const data = await apiFetch<{status: "success", agents: AgentType[]}>(`${serverURL}/users/agents/list`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token
+        })
+      });
+
+      for (const agent of data.agents) {
+        handlePushUserAgent(agent);
+      }
+    }
+    catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Get user agents failed:", error.data);
+        toast.error("Get agents failed");
+        return;
+      }
+
+      window.alert("Server error");
+      router.reload();
+    };
+  };
+
+  const postUserAgent = async (newAgent: AgentType) => {
+    if (!user.token) return;
+
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!serverURL) return;
+
+    type PostUserAgentResponse =
+      | {
+        status: "success";
+        inserted: true;
+        agend_id: string;
+      }
+      | {
+        status: "success";
+        inserted: false;
+        message: string;
+      };
+
+    try {
+      const data = await apiFetch<PostUserAgentResponse>(`${serverURL}/users/agents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,154 +196,122 @@ const Share = () => {
           agent: newAgent
         })
       });
-      
-      const data = await res.json();
 
-      if (res.ok) {
-        const finalAgents = [...myAgents.flat(), newAgent];
-        computeAgents(finalAgents);
+      removeFile();
+      
+      if (!data.inserted) {
+        toast.warning("Already deployed.");
+        return;
       }
-      else {
-        console.error(data);
-      }
-    } catch (error) {
-      window.alert("Server error");
-      // router.reload();
+
+      toast.success("Agent deployed.");
+      handlePushUserAgent(newAgent);
     }
+    catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Post user agent failed:", error.data);
+        toast.error(`Post user agent failed: ${error.message}`);
+        return;
+      }
+
+      window.alert("Server error");
+      router.reload();
+    }
+    finally {
+      setIsUploading(false);
+    };
   };
   
-  const deleteUserAgent = async (targetSlug: AgentType["slug"]) => {
-    if (user.token === "") return;
-    
+  const deleteUserAgent = async (targetAgent: AgentType) => {
+    if (!user.token) return;
+
     const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
     if (!serverURL) return;
-  
+
     try {
-      const res = await fetch(`${serverURL}/users/agents`, {
+      await apiFetch(`${serverURL}/users/agents`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           access_token: user.token,
-          slug: targetSlug
+          agent: targetAgent
         })
       });
-      
-      const data = await res.json();
-  
-      if (res.ok) {
-        const finalAgents = [...myAgents.flat().filter(ag => ag.slug !== targetSlug)];
-        computeAgents(finalAgents);
-        toast.success("Agent deleted.");
-      }
-      else {
-        console.error("Delete user agent failed", data);
-      }
-    } catch (error) {
-      window.alert("Server error");
-      // router.reload();
+
+      toast.success("Agent deleted.");
+      subscriptions.setSubs(prev => prev.filter(p => p !== targetAgent.slug));
+      handleDeleteUserAgent(targetAgent);
     }
-  }
+    catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Delete user agent failed:", error.data);
+        toast.error(`Delete user agent failed: ${error.message}`);
+        return;
+      }
 
-  const getMyAgents = async () => {
-    // if (user.token === "") return;
-
-    // const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
-    // if (!serverURL) return;
-    
-    // try {
-    //   const res = await fetch(`${serverURL}/users/agents/list`, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       access_token: user.token
-    //     })
-    //   });
-      
-    //   const data = await res.json();
-      
-    //   if (res.ok) {
-    //     computeAgents(data.agents);
-    //   }
-    //   else {
-    //     console.error("Get failed", data.detail);
-    //   }
-    // } catch (error) {
-    //   window.alert("Server error");
-    //   router.reload();
-    // }
+      window.alert("Server error");
+      router.reload();
+    }
+    finally {
+      setIsDeleting(false);
+    };
   };
 
   const deployAgent = async () => {
-    if (!file || isLoading) return;
-    setIsLoading(true);
+    if (!file || isUploading) return;
+    setIsUploading(true);
+
+    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
+    if (!serverURL) return;
 
     const formData = new FormData();
     formData.append("file", file);
 
-    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
-    if (!serverURL) return;
-
     try {
-      const res = await fetch(`${serverURL}/api/deploy`, {
+      const data = await apiFetch<{status: "deployed"} & AgentType>(`${serverURL}/api/deploy`, {
         method: "POST",
         body: formData
       });
 
-      const data = await res.json();
-
-      if (data.status === "deployed") {
-        removeFile();
-        toast.success("Agent uploaded.");
-        const newAgent: AgentType = {
-          slug: data.slug,
-          name: data.name,
-          version: data.version,
-          description: data.description,
-          price: data.price,
-          icon: data.icon
-        };
-
-        // await postAgent(newAgent);
-        const finalAgents = [...myAgents.flat(), newAgent];
-        computeAgents(finalAgents);
-      }
-      else {
-        console.error(data.detail);
-        toast.error(`Upload failed: ${data.detail}`);
-      }
-    } catch (error) {
-      window.alert("Deploy error");
-      router.reload();
-    } finally {
-      setIsLoading(false);
+      const { status, ...deployedAgent } = data;
+      await postUserAgent(deployedAgent);
     }
+    catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Deploy failed:", error.data);
+        toast.error(`Deploy failed: ${error.message}`);
+        return;
+      }
+
+      window.alert("Server error");
+      router.reload();
+    };
   };
 
-  const deleteAgent = async (slug: AgentType["slug"]) => {
+  const deleteAgent = async (targetAgent: AgentType) => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+
     const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
     if (!serverURL) return;
 
     try {
-      const res = await fetch(`${serverURL}/api/agents/${slug}`, {
+      await apiFetch<{status: "deleted"}>(`${serverURL}/api/agents/${targetAgent.slug}`, {
         method: "DELETE"
       });
 
-      const data = await res.json();
-
-      if (data.status === "deleted") {
-        // await deleteUserAgent(slug);
-        const finalAgents = [...myAgents.flat().filter(ag => ag.slug !== slug)];
-        computeAgents(finalAgents);
-        toast.success("Agent deleted.");
-      }
-      else {
-        console.error(data.detail);
-        toast.error(`Delete failed: ${data.detail}`);
-      }
-    } catch (error) {
-      window.alert("Delete error");
-      router.reload();
+      await deleteUserAgent(targetAgent);
     }
+    catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Delete failed:", error.data);
+        toast.error(`Delete failed: ${error.message}`);
+        return;
+      }
+
+      window.alert("Server Error");
+      router.reload();
+    };
   };
 
   const removeFile = () => {
@@ -288,8 +321,55 @@ const Share = () => {
     setFile(null);
   };
 
-  const handleClickGenerateYaml = () => {
-    setYaml(test_yaml);
+  const handleClickGenerateYaml = async () => {
+    if (!githubURL || isGenerating) return;
+    setIsGenerating(true);
+
+    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
+    if (!serverURL) return;
+    
+    type GenerateYamlResponse = {
+      status: "success";
+      yaml: string;
+      analysis: string;
+      source: "generated" | "existing";
+      repo: string;
+      branch: string;
+      files_analyzed: number;
+    };
+
+    try {
+      const data = await apiFetch<GenerateYamlResponse>(`${serverURL}/api/generate-yaml`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          github_url: githubURL
+        })
+      });
+
+      console.log(data.yaml);
+      setYaml(data.yaml);
+    }
+    catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Generate failed:", error.data);
+        toast.error(`Generate failed: ${error.message}`);
+        return;
+      }
+
+      window.alert("Server error");
+      router.reload();
+    }
+    finally {
+      setIsGenerating(false);
+    };
+  };
+
+  const handleChangeInput = (event: ChangeEvent<HTMLInputElement>, callback: (str: string) => void) => {
+    const target = event.target;
+    const value = target.value;
+
+    callback(value);
   };
 
   const handleChangeFile = (event: ChangeEvent<HTMLInputElement>) => {
@@ -309,17 +389,17 @@ const Share = () => {
 
   const handleDragOver = (event: DragEvent<HTMLLabelElement>) => {
     event.preventDefault();
-    setIsDragging(true);
+    setIsFileDragging(true);
   };
   
   const handleDragLeave = (event: DragEvent<HTMLLabelElement>) => {
     event.preventDefault();
-    setIsDragging(false);
+    setIsFileDragging(false);
   };
   
   const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
     event.preventDefault();
-    setIsDragging(false);
+    setIsFileDragging(false);
     
     const droppedFiles = event.dataTransfer.files;
     if (droppedFiles.length === 0) return;
@@ -350,7 +430,7 @@ const Share = () => {
       return;
     }
 
-    getMyAgents();
+    getUserAgents();
   }, [user.token]);
 
   return (
@@ -378,7 +458,7 @@ const Share = () => {
                       <h4>upload new Agent</h4>
                     </div>
                     <div className={clsx(styles.shareFile)}>
-                      <label className={clsx({ [styles.dragging]: isDragging })} htmlFor="file" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
+                      <label className={clsx({ [styles.dragging]: isFileDragging })} htmlFor="file" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
                         <div className={clsx(styles.fileUploadIcon, { [styles.fileUploaded]: file })}>
                           {file && (
                             <Image src={file_icon.src} alt={file_icon.alt} />
@@ -402,9 +482,9 @@ const Share = () => {
                         )}
                       </label>
                       <input ref={inputRef} id="file" type="file" accept="application/zip" onChange={handleChangeFile} />
-                      <button className={clsx({ [styles.loading]: isLoading })} disabled={!file || isLoading} onClick={deployAgent}>
+                      <button className={clsx({ [styles.loading]: isUploading })} disabled={!file || isUploading} onClick={deployAgent}>
                         <Image src={upload_icon.src} alt={upload_icon.alt} />
-                        <p>{isLoading ? "Sharing Agent..." : "Share Agent"}</p>
+                        <p>{isUploading ? "Sharing Agent..." : "Share Agent"}</p>
                       </button>
                     </div>
                     <div className={clsx(styles.shareNotice)}>
@@ -414,8 +494,10 @@ const Share = () => {
                 </div>
                 <div className={clsx(styles.yamlGenerator)}>
                   <div className={clsx(styles.generatorInput)}>
-                    <input type="text" placeholder="Enter your Github URL..." />
-                    <button onClick={handleClickGenerateYaml}>Generate</button>
+                    <input type="text" placeholder="Enter your Github URL..." value={githubURL} onChange={(event) => handleChangeInput(event, setGithubURL)} />
+                    <button disabled={isGenerating} onClick={handleClickGenerateYaml}>
+                      {isGenerating ? "Generating..." : "Generate"}
+                    </button>
                   </div>
                   <div className={clsx(styles.yamlLog)}>
                     {yaml === "" && (
@@ -431,10 +513,10 @@ const Share = () => {
             <div className={clsx(styles.right)}>
               <div className={clsx(styles.myAgentsTitle)}>
                 <Image src={box_icon.src} alt={box_icon.alt} />
-                <h4>{`My Agents (${myAgents.flat().length})`}</h4>
+                <h4>{`My Agents (${userAgents.flat().length})`}</h4>
               </div>
               <div className={clsx(styles.agents)}>
-                {myAgents?.[toggledPage - 1]?.map((agent, idx) => (
+                {userAgents?.[toggledPage - 1]?.map((agent, idx) => (
                   <div className={clsx(styles.card)} key={idx}>
                     <div className={clsx(styles.cardLeft)}>
                       <p>{agent.icon}</p>
@@ -452,18 +534,18 @@ const Share = () => {
                       </div>
                       <div className={clsx(styles.cardOption)}>
                         <div>
-                          <button className={clsx(styles.subscribe, { [styles.subscribed]: subscriptions.subs.includes(agent.slug) })}>구독</button>
-                          <button className={clsx(styles.use)}>사용</button>
+                          {/* <button className={clsx(styles.subscribe, { [styles.subscribed]: subscriptions.subs.includes(agent.slug) })}>구독</button>
+                          <button className={clsx(styles.use)}>사용</button> */}
                         </div>
-                        <button className={clsx(styles.delete)} onClick={() => deleteAgent(agent.slug)}>삭제</button>
+                        <button className={clsx(styles.delete)} disabled={isDeleting} onClick={() => deleteAgent(agent)}>삭제</button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              {myAgents.length > 1 && (
+              {userAgents.length > 1 && (
                 <div className={clsx(styles.listIndex)}>
-                  {myAgents.map((_, idx) => (
+                  {userAgents.map((_, idx) => (
                     <div className={clsx({ [styles.toggledIndex]: toggledPage === idx + 1 })} onClick={() => changePage(idx + 1)} key={idx}>
                       <p>{idx + 1}</p>
                     </div>

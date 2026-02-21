@@ -121,6 +121,7 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 2.5px;
   transition: ease-in-out 150ms;
@@ -153,8 +154,20 @@
 }
 .agentProfile .title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 25px;
+}
+.agentProfile .name {
+  flex: 1;
+  min-width: 0;
+}
+.agentProfile .name h4 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agentProfile .version {
+  margin-left: auto;
 }
 
 .name h4 {
@@ -175,8 +188,13 @@
 }
 
 .description p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
   color: var(--color-gray);
   font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agentList .option {

@@ -195,10 +195,6 @@
 .loading {
   animation: pulse 2s ease-in-out infinite;
 }
-@keyframes pulse {
-  0%, 100% { opacity: 0.25; }
-  50% { opacity: 1; }
-}
 
 .shareNotice {
   display: flex;
@@ -223,6 +219,7 @@
   border-radius: 2.5px;
   background-color: color-mix(in oklab, var(--secondary) 10%, transparent);
   gap: 15px;
+  transition: ease-in-out 150ms;
 }
 
 .generatorInput {
@@ -235,17 +232,24 @@
   border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent);
   border-radius: 2.5px;
   color: color-mix(in oklab, var(--color-white) 90%, var(--color-gray));
-  background-color: color-mix(in oklab, var(--primary) 10%, transparent);
+  background-color: transparent;
   outline: none; 
 }
 .generatorInput button {
   cursor: pointer;
+  width: 120px;
   padding: 5px 15px;
   border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
   border-radius: 2.5px;
   color: var(--color-black);
   font-weight: bold;
   background-color: color-mix(in oklab, var(--secondary) 65%, transparent);
+  transition: ease-in-out 150ms;
+}
+.generatorInput button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .yamlLog {
@@ -379,6 +383,7 @@
 }
 .subscribed {
   border-color: color-mix(in oklab, var(--accent) 75%, transparent);
+  color: var(--color-white) !important;
   background-color: color-mix(in oklab, var(--accent) 50%, transparent);
 }
 
@@ -397,6 +402,11 @@
   color: color-mix(in oklab, var(--color-red) 75%, transparent);
   background-color: transparent;
   transition: ease-in-out 150ms;
+}
+.delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .listIndex {
@@ -423,6 +433,11 @@
   color: var(--color-white);
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
 @media (hover: hover) {
   .leftContainer:hover {
     box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--primary) 50%, transparent);
@@ -436,6 +451,13 @@
   }
   .shareFile > button:not(:disabled):hover img {
     transform: translateY(-2.5px);
+  }
+
+  .yamlGenerator:hover {
+    box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--secondary) 50%, transparent); 
+  }
+  .generatorInput button:hover {
+    opacity: 0.65;
   }
 
   .card:hover {
