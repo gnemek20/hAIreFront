@@ -20,6 +20,11 @@ const upload_icon = {
   alt: "upload"
 };
 
+const download_icon = {
+  src: require("@/public/assets/download.svg"),
+  alt: "download"
+};
+
 const file_icon = {
   src: require("@/public/assets/file.svg"),
   alt: "file"
@@ -87,7 +92,7 @@ const Share = () => {
   const [file, setFile] = useState<File | null>(null);
 
   const [githubURL, setGithubURL] = useState<string>("");
-  const [yaml, setYaml] = useState<string>("");
+  const [generatedYaml, setGeneratedYaml] = useState<string>("");
 
   const [userAgents, setUserAgents] = useState<AgentType[][]>([]);
 
@@ -216,9 +221,6 @@ const Share = () => {
 
       window.alert("Server error");
       router.reload();
-    }
-    finally {
-      setIsUploading(false);
     };
   };
   
@@ -239,8 +241,9 @@ const Share = () => {
       });
 
       toast.success("Agent deleted.");
-      unSubscribeAgent(targetAgent.slug);
       handleDeleteUserAgent(targetAgent);
+
+      if (subscriptions.subs.includes(targetAgent.slug)) unSubscribeAgent(targetAgent.slug);
     }
     catch (error) {
       if (error instanceof ApiError) {
@@ -251,9 +254,6 @@ const Share = () => {
 
       window.alert("Server error");
       router.reload();
-    }
-    finally {
-      setIsDeleting(false);
     };
   };
 
@@ -315,6 +315,9 @@ const Share = () => {
 
       window.alert("Server error");
       router.reload();
+    }
+    finally {
+      setIsUploading(false);
     };
   };
 
@@ -341,6 +344,9 @@ const Share = () => {
 
       window.alert("Server Error");
       router.reload();
+    }
+    finally {
+      setIsDeleting(false);
     };
   };
 
@@ -349,6 +355,24 @@ const Share = () => {
 
     inputRef.current.value = "";
     setFile(null);
+  };
+
+  const downloadYaml = (content: string, filename="haire.yaml") => {
+    const blob = new Blob([content], {
+      type: "text/yaml;charset=utf-8;"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleClickGenerateYaml = async () => {
@@ -378,7 +402,7 @@ const Share = () => {
       });
 
       console.log(data.yaml);
-      setYaml(data.yaml);
+      setGeneratedYaml(data.yaml);
     }
     catch (error) {
       if (error instanceof ApiError) {
@@ -393,6 +417,10 @@ const Share = () => {
     finally {
       setIsGenerating(false);
     };
+  };
+
+  const handleClickDownloadYaml = () => {
+    downloadYaml(generatedYaml);
   };
 
   const handleChangeInput = (event: ChangeEvent<HTMLInputElement>, callback: (str: string) => void) => {
@@ -529,14 +557,17 @@ const Share = () => {
                       {isGenerating ? "Generating..." : "Generate"}
                     </button>
                   </div>
-                  <div className={clsx(styles.yamlLog)}>
-                    {yaml === "" && (
-                      <p>The YAML will be displayed here.</p>
-                    )}
-                    {yaml !== "" && (
-                      <p>{yaml}</p>
-                    )}
-                  </div>
+                  {generatedYaml && (
+                    <div className={clsx(styles.yamlDownloader)} onClick={handleClickDownloadYaml}>
+                      <div className={clsx(styles.yamlName)}>
+                        <Image src={file_icon.src} alt={file_icon.alt} />
+                        <p>haire.yaml</p>
+                      </div>
+                      <div className={clsx(styles.yamlDownloadButton)}>
+                        <Image src={download_icon.src} alt={download_icon.alt} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
