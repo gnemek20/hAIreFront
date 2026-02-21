@@ -239,7 +239,7 @@ const Share = () => {
       });
 
       toast.success("Agent deleted.");
-      subscriptions.setSubs(prev => prev.filter(p => p !== targetAgent.slug));
+      unSubscribeAgent(targetAgent.slug);
       handleDeleteUserAgent(targetAgent);
     }
     catch (error) {
@@ -255,6 +255,36 @@ const Share = () => {
     finally {
       setIsDeleting(false);
     };
+  };
+
+  const unSubscribeAgent = async (targetSlug: AgentType["slug"]) => {
+    if (!user.token) return;
+
+    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+    if (!serverURL) return;
+
+    try {
+      await apiFetch<{ status: "success" }>(`${serverURL}/users/subscriptions`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: user.token,
+          slug: targetSlug
+        })
+      });
+
+      subscriptions.setSubs(prev => prev.filter(slug => slug !== targetSlug));
+    }
+    catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Unsubscribe failed:", error.data);
+        toast.error(`Unsubscribe failed: ${error.message}`);
+        return;
+      }
+
+      window.alert("Server error");
+      router.reload();
+    }
   };
 
   const deployAgent = async () => {
