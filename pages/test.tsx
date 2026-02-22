@@ -1,5 +1,9 @@
-import { useRouter } from "next/router";
+// ── React / Next ──
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+
+// ── Internal Modules ──
+import { agentApi } from "@/utils/api";
 
 const Test = () => {
   const router = useRouter();
@@ -33,17 +37,10 @@ const Test = () => {
   }
 
   const deleteGW = async () => {
-    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
-    if (!serverURL) return;
-
     const slug = "email-ghostwriter-2";
 
     try {
-      const res = await fetch((`${serverURL}/api/agents/${slug}`), {
-        method: "DELETE"
-      });
-
-      const data = await res.json();
+      const data = await agentApi.deleteAgent(slug);
       console.log(data);
     } catch (error) {
       window.alert(error)

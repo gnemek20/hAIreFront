@@ -1,4 +1,7 @@
-.sticky {
+/* ============================================================
+   TOP STICKY — Layout
+   ============================================================ */
+.top-sticky {
   position: sticky;
   top: 0;
   left: 0;
@@ -8,7 +11,7 @@
   backdrop-filter: blur(7.5px);
 }
 
-.wrapper {
+.top-sticky-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -17,98 +20,164 @@
   height: 60px;
   margin: 0 auto;
 }
-.wrapper > div {
+.top-sticky-inner > div {
   display: flex;
   align-items: center;
 }
 
-.title {
+
+/* ============================================================
+   TOP STICKY — Title
+   ============================================================ */
+.sticky-title {
   cursor: pointer;
   height: 40px;
   gap: 10px;
   transition: ease-in-out 150ms;
 }
-.title img {
-  object-fit: contain;
+.sticky-title img {
   width: auto;
   height: 100%;
+  object-fit: contain;
   filter: brightness(3.75);
 }
-.title h1 {
+.sticky-title h1 {
   color: var(--color-white);
   font-size: 18px;
 }
 
-.category {
+
+/* ============================================================
+   TOP STICKY — Navigation
+   ============================================================ */
+.sticky-nav {
   gap: 5px;
 }
-.category > div {
+.sticky-nav > div {
   cursor: pointer;
   padding: 5px 15px;
-  border-radius: 2.5px;
+  border-radius: 4px;
   opacity: 0.35;
   transition: ease-in-out 150ms;
 }
-.category p {
+.sticky-nav p {
   color: var(--color-white);
   font-size: 14px;
 }
 
-.toggled {
+.nav-item--active {
   opacity: 1 !important;
   background-color: rgba(255, 255, 255, 0.075);
   box-shadow: 0px 0px 7.5px 1px color-mix(in oklab, var(--primary) 35%, transparent);
 }
-.toggled p {
+.nav-item--active p {
   color: var(--primary);
 }
 
-.sign {
+
+/* ============================================================
+   TOP STICKY — Auth
+   ============================================================ */
+.sticky-auth {
   gap: 10px;
 }
-.sign button {
+.sticky-auth button {
   cursor: pointer;
   padding: 2.5px 5px;
-  border-radius: 2.5px;
+  border-radius: 4px;
   transition: ease-in-out 150ms;
 }
-.sign button:first-child {
+.sticky-auth button:first-child {
   border: 1px solid var(--card-foreground);
   color: var(--color-white);
   background-color: transparent;
 }
-.sign button:last-child {
+.sticky-auth button:last-child {
   border: 1px solid var(--primary);
   color: var(--background);
   background-color: var(--primary);
   box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--primary) 85%, transparent);
 }
 
-.userProfile {
+.user-profile {
   display: flex;
   align-items: center;
   gap: 5px;
 }
-.userProfile img {
-  object-fit: contain;
+.user-profile img {
   width: auto;
   height: 14px;
+  object-fit: contain;
   filter: invert(0.45);
 }
-.userProfile p {
+.user-profile p {
   color: var(--color-gray);
   font-size: 14px;
 }
 
+
+/* ============================================================
+   HOVER EFFECTS (pointer device only)
+   ============================================================ */
 @media (hover: hover) {
-  .title:hover {
+  .sticky-title:hover {
     opacity: 0.65;
   }
-  .category > div:hover {
+  .sticky-nav > div:hover {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.075);
   }
-  .sign button:hover {
+  .sticky-auth button:hover {
     opacity: 0.65;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .top-sticky-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 0;
+    gap: 8px;
+  }
+
+  .sticky-title h1 {
+    font-size: 14px;
+  }
+
+  .sticky-title {
+    height: 30px;
+    gap: 6px;
+  }
+
+  .sticky-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .sticky-nav > div {
+    padding: 4px 10px;
+  }
+
+  .sticky-nav p {
+    font-size: 12px;
+  }
+
+  .sticky-auth {
+    gap: 6px;
+  }
+
+  .sticky-auth button {
+    padding: 2px 6px;
+    font-size: 12px;
+  }
+
+  .user-profile p {
+    font-size: 12px;
   }
 }

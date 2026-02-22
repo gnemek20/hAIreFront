@@ -1,72 +1,92 @@
-import { useUser } from "@/contexts/UserContext";
-import styles from "@/styles/components/TopSticky.module.css";
-import { CategoryType } from "@/types/agentTypes";
-import clsx from "clsx";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
 
-const logo_icon = {
+import clsx from "clsx";
+
+import { useUser } from "@/contexts/UserContext";
+import { CategoryType } from "@/types/agentTypes";
+import { navigateHandler } from "@/utils/navigate";
+import styles from "@/styles/components/TopSticky.module.css";
+
+const ICON_LOGO = {
   src: require("@/public/images/logo.png"),
   alt: "logo"
 };
 
-const user_icon = {
+const ICON_USER = {
   src: require("@/public/assets/user.svg"),
   alt: "user"
 };
 
 const TopSticky = () => {
+  // ── Hooks ──
   const router = useRouter();
   const user = useUser();
 
-  const [isSigned, setIsSigned] = useState<boolean>(false);
-  const [toggled, setToggled] = useState<CategoryType | null>(null);
+  // ── State ──
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [activeNav, setActiveNav] = useState<CategoryType | null>(null);
 
+  // ── Effects ──
   useEffect(() => {
-    if (user.hasAuth()) setIsSigned(true);
-    else setIsSigned(false);
+    if (user.hasAuth()) setIsAuthenticated(true);
+    else setIsAuthenticated(false);
   }, [user.token]);
 
   useEffect(() => {
     const pathname = router.pathname;
 
-    if (pathname === "/") setToggled("find");
-    else if (pathname === "/share") setToggled("share");
-    else if (pathname === "/chat") setToggled("chat");
+    if (pathname === "/") setActiveNav("find");
+    else if (pathname === "/share") setActiveNav("share");
+    else if (pathname === "/chat") setActiveNav("chat");
   }, [router.pathname]);
 
   return (
-    <div className={clsx(styles.sticky)}>
-      <div className={clsx(styles.wrapper)}>
-        <div className={clsx(styles.title)} onClick={router.reload}>
-          <Image src={logo_icon.src} alt={logo_icon.alt} />
+    <div className={clsx(styles["top-sticky"])}>
+      <div className={clsx(styles["top-sticky-inner"])}>
+        {/* Logo */}
+        <div className={clsx(styles["sticky-title"])} onClick={router.reload}>
+          <Image src={ICON_LOGO.src} alt={ICON_LOGO.alt} />
           <h1>hAIre Agent Market</h1>
         </div>
-        <div className={clsx(styles.category)}>
-          <div className={clsx({ [styles.toggled]: toggled === "find" })} onClick={() => router.push("/")}>
+
+        {/* Navigation */}
+        <div className={clsx(styles["sticky-nav"])}>
+          <div
+            className={clsx({ [styles["nav-item--active"]]: activeNav === "find" })}
+            onClick={navigateHandler(router, "/")}
+          >
             <p>Find Agent</p>
           </div>
-          <div className={clsx({ [styles.toggled]: toggled === "share" })} onClick={() => router.push("/share")}>
+          <div
+            className={clsx({ [styles["nav-item--active"]]: activeNav === "share" })}
+            onClick={navigateHandler(router, "/share")}
+          >
             <p>Share Agent</p>
           </div>
-          <div className={clsx({ [styles.toggled]: toggled === "chat" })} onClick={() => router.push("/chat")}>
+          <div
+            className={clsx({ [styles["nav-item--active"]]: activeNav === "chat" })}
+            onClick={navigateHandler(router, "/chat")}
+          >
             <p>Chat Agent</p>
           </div>
         </div>
-        <div className={clsx(styles.sign)}>
-          {isSigned ? (
+
+        {/* Auth */}
+        <div className={clsx(styles["sticky-auth"])}>
+          {isAuthenticated ? (
             <React.Fragment>
-              <div className={clsx(styles.userProfile)}>
-                <Image src={user_icon.src} alt={user_icon.alt} />
+              <div className={clsx(styles["user-profile"])}>
+                <Image src={ICON_USER.src} alt={ICON_USER.alt} />
                 <p>{user.name}</p>
               </div>
               <button onClick={user.signOut}>Sign out</button>
             </React.Fragment>
           ) : (
             <React.Fragment>
-              <button onClick={() => router.push("/signin")}>Sign in</button>
-              <button onClick={() => router.push("/signup")}>Sign up</button>
+              <button onClick={navigateHandler(router, "/signin")}>Sign in</button>
+              <button onClick={navigateHandler(router, "/signup")}>Sign up</button>
             </React.Fragment>
           )}
         </div>

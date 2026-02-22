@@ -1,93 +1,73 @@
+import React, { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/router";
+
+import clsx from "clsx";
+
 import SignHeader from "@/components/SignHeader";
 import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 import { useUser } from "@/contexts/UserContext";
-import styles from "@/styles/pages/signin.module.css";
 import { AgentType } from "@/types/agentTypes";
-import clsx from "clsx";
-import Image from "next/image";
-import { useRouter } from "next/router";
-import React, { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
+import { ApiError, userApi } from "@/utils/api";
+import styles from "@/styles/pages/signin.module.css";
 
-const right_arrow = {
+const ICON_ARROW = {
   src: require("@/public/assets/right-arrow.svg"),
   alt: "logo"
 };
 
 const SignIn = () => {
+  // ── Hooks ──
   const router = useRouter();
   const user = useUser();
   const subscriptions = useSubscriptions();
 
-  const [id, setId] = useState<string>("");
-  const [pwd, setPwd] = useState<string>("");
+  // ── State ──
+  const [loginId, setLoginId] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
-  const [isDisabled, setIsDisabled] = useState<boolean>(true);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const getSubscriptions = async (token: string) => {
-    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+  // ── Data Fetching ──
+  const fetchSubscriptions = async (token: string) => {
     if (token === "") return;
     
     try {
-      const res = await fetch(`${serverURL}/users/subscriptions/list`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_token: token
-        })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        const subs = data["subscriptions"] as AgentType["slug"][];
-        subscriptions.setSubs(subs);
-      }
-      else {
-        console.error("Get subscriptions failed:", data.detail || data);
-      }
+      const data = await userApi.getSubscriptions(token);
+      subscriptions.setSubs(data.subscriptions);
     } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Get subscriptions failed:", (error.data as any)?.detail || error.data);
+        return;
+      }
       window.alert("Get subscriptions error");
       router.reload();
     }
   };
 
   const signIn = async () => {
-    if (isLoading || isDisabled) return;
+    if (isLoading || isSubmitDisabled) return;
     setIsLoading(true);
 
-    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
-    if (!serverURL) return;
-
     try {
-      const res = await fetch(`${serverURL}/signin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: id,
-          pwd: pwd
-        })
-      });
+      const data = await userApi.signIn(loginId, password);
 
-      const data = await res.json();
-
-      if (res.status === 401) {
-        setPwd("");
-        if (data.detail === "User not found") setId("");
-
-        return;
-      }
-
-      if (!res.ok) {
-        console.error("Sign in error:", data.detail, data);
-      }
-
-      user.signIn(data["access_token"], data["username"]);
-      await getSubscriptions(data["access_token"]);
+      user.signIn(data.access_token, data.username);
+      await fetchSubscriptions(data.access_token);
 
       const redirect = router.query["redirect"] as string;
       router.replace(redirect ? redirect : "/");
     } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.status === 401) {
+          setPassword("");
+          if ((error.data as any)?.detail === "User not found") setLoginId("");
+          return;
+        }
+        console.error("Sign in error:", (error.data as any)?.detail, error.data);
+        return;
+      }
       window.alert("Sign in error");
       router.reload();
     } finally {
@@ -95,49 +75,68 @@ const SignIn = () => {
     }
   };
 
-  const handleChangeValue = (event: ChangeEvent<HTMLInputElement>, callback: (str: string) => void) => {
+  // ── Handlers ──
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>, callback: (str: string) => void) => {
     const target = event.target;
     const value = target.value;
 
     callback(value);
   };
 
-  const handlePressEnter = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const key = event.key;
     if (key === "Enter") signIn();
   };
 
+  // ── Effects ──
   useEffect(() => {
-    if (id !== "" && pwd !== "") setIsDisabled(false);
-    else setIsDisabled(true);
-  }, [id, pwd]);
+    if (loginId !== "" && password !== "") setIsSubmitDisabled(false);
+    else setIsSubmitDisabled(true);
+  }, [loginId, password]);
 
   return (
     <React.Fragment>
-      <SignHeader p="No have account?" a="Sign up" />
-      <div className={clsx(styles.container)}>
-        <div className={clsx(styles.form)} onKeyDown={handlePressEnter}>
-          <div className={clsx(styles.field)}>
-            <div className={clsx(styles.formTitle)}>
+      <SignHeader message="No have account?" linkText="Sign up" />
+
+      <div className={clsx(styles["sign-in-page"])}>
+        <div className={clsx(styles["sign-in-form"])} onKeyDown={handleKeyDown}>
+          <div className={clsx(styles["form-field"])}>
+            {/* Title */}
+            <div className={clsx(styles["form-title"])}>
               <h1>Sign in</h1>
               <p>Join the AI Agent Marketplace</p>
             </div>
-            <div className={clsx(styles.input)}>
+
+            {/* Inputs */}
+            <div className={clsx(styles["form-input"])}>
               <p>ID</p>
-              <input type="text" placeholder="Enter ID" value={id} onChange={(event) => handleChangeValue(event, setId)} />
+              <input
+                type="text"
+                placeholder="Enter ID"
+                value={loginId}
+                onChange={(event) => handleInputChange(event, setLoginId)}
+              />
             </div>
-            <div className={clsx(styles.input)}>
+            <div className={clsx(styles["form-input"])}>
               <p>Password</p>
-              <input type="password" placeholder="Enter Password" value={pwd} onChange={(event) => handleChangeValue(event, setPwd)} />
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(event) => handleInputChange(event, setPassword)}
+              />
             </div>
-            <div className={clsx(styles.submit)}>
-              <button disabled={isDisabled || isLoading} onClick={signIn}>
+
+            {/* Submit */}
+            <div className={clsx(styles["form-submit"])}>
+              <button disabled={isSubmitDisabled || isLoading} onClick={signIn}>
                 {isLoading ? "Signing in..." : "Sign in"}
-                <Image src={right_arrow.src} alt={right_arrow.alt} />
+                <Image src={ICON_ARROW.src} alt={ICON_ARROW.alt} />
               </button>
             </div>
           </div>
-          <div className={clsx(styles.belt)}>
+
+          <div className={clsx(styles["form-footer"])}>
             <p>ⓒ hAIre</p>
           </div>
         </div>

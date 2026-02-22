@@ -1,0 +1,46 @@
+/* ============================================================
+   DIALOG — Backdrop & Panel (Shared Base)
+   ============================================================ */
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100dvw;
+  height: 100dvh;
+  background-color: color-mix(in oklab, var(--background) 50%, transparent);
+  backdrop-filter: blur(10px);
+  transition: ease-in-out 150ms;
+}
+.dialog-backdrop--closed {
+  opacity: 0;
+}
+
+.dialog-panel {
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  height: 90dvh;
+  margin: auto;
+  border: 1px solid color-mix(in oklab, var(--primary) 25%, transparent);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--card) 75%, var(--background));
+  box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--primary) 25%, transparent);
+  transition: ease-in-out 150ms;
+}
+.dialog-panel--closed {
+  transform: scale(0.95);
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .dialog-panel {
+    width: 100dvw;
+    height: 100dvh;
+    border: none;
+    border-radius: 0;
+  }
+}

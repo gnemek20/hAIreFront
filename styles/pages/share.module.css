@@ -1,4 +1,7 @@
-.background {
+/* ============================================================
+   SHARE — Background & Layout
+   ============================================================ */
+.share-background {
   position: absolute;
   top: 0;
   left: 0;
@@ -8,7 +11,7 @@
   background-color: var(--background);
 }
 
-.section {
+.share-section {
   display: flex;
   justify-content: center;
   min-height: calc(100dvh - 61px);
@@ -19,7 +22,7 @@
     linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
   background-size: 50px 50px;
 }
-.sectionWrapper {
+.share-section-inner {
   display: flex;
   flex-direction: column;
   max-width: 1400px;
@@ -27,43 +30,51 @@
   margin: 0 auto;
 }
 
-.pageTitle {
+
+/* ============================================================
+   SHARE — Page Title
+   ============================================================ */
+.page-title {
   display: flex;
   flex-direction: column;
   margin-top: 50px;
   gap: 5px;
 }
-.pageTitle > div {
+.page-title > div {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.pageTitle img {
-  object-fit: contain;
+.page-title img {
   width: auto;
   height: 24px;
+  object-fit: contain;
   filter: invert(0.95);
 }
-.pageTitle h1 {
+.page-title h1 {
   color: var(--color-white);
   font-family: var(--font-orbitron);
   font-size: 32px;
 }
-.pageTitle p {
+.page-title p {
   color: var(--color-gray);
 }
 
-.sharing {
+
+/* ============================================================
+   SHARE — Layout (Left / Right)
+   ============================================================ */
+.share-layout {
   display: flex;
   margin-top: 50px;
   gap: 50px;
 }
 
-.left {
+.share-left {
   display: flex;
   flex-direction: column;
 }
-.stickyLeft {
+.share-left-sticky {
   position: sticky;
   top: 150px;
   display: flex;
@@ -72,13 +83,22 @@
   padding-bottom: 50px;
   gap: 30px;
 }
-.leftWrapper {
+
+.share-right {
+  flex: 1;
+}
+
+
+/* ============================================================
+   SHARE — Upload Section
+   ============================================================ */
+.upload-wrapper {
   display: flex;
   border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent);
-  border-radius: 2.5px;
+  border-radius: 4px;
   background-color: color-mix(in oklab, var(--primary) 10%, transparent);
 }
-.leftContainer {
+.upload-container {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -88,438 +108,691 @@
   transition: ease-in-out 150ms;
 }
 
-.shareTitle {
+.upload-title {
   display: flex;
   align-items: center;
   gap: 5px;
 }
-.shareTitle img {
-  object-fit: contain;
+.upload-title img {
   width: auto;
   height: 18px;
+  object-fit: contain;
   filter: invert(0.95);
 }
-.shareTitle h4 {
+.upload-title h4 {
   color: var(--color-white);
   font-family: var(--font-orbitron);
   font-size: 20px;
 }
 
-.shareFile {
+.upload-file {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
-.shareFile > label {
+.upload-file > label {
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 25px;
   border: 2px dashed color-mix(in oklab, var(--background) 10%, transparent);
-  border-radius: 2.5px;
+  border-radius: 4px;
   gap: 10px;
   transition: ease-in-out 150ms;
 }
-.shareFile label > button {
+.upload-file label > button {
   cursor: pointer;
   padding: 5px 15px;
   border: 1px solid var(--border);
-  border-radius: 2.5px;
+  border-radius: 4px;
   color: color-mix(in oklab, var(--color-white) 50%, var(--color-gray));
   background-color: transparent;
   transition: ease-in-out 150ms;
 }
-.fileUploadIcon {
+
+.file-upload-icon {
   display: flex;
   padding: 15px;
   border: 1px solid transparent;
-  border-radius: 2.5px;
+  border-radius: 4px;
   background-color: color-mix(in oklab, var(--background) 50%, transparent);
   transition: ease-in-out 150ms;
 }
-.fileUploadIcon img {
-  object-fit: contain;
+.file-upload-icon img {
   width: auto;
   height: 24px;
+  object-fit: contain;
   filter: invert(0.5);
 }
-.shareFile h4 {
-  color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
-  text-align: center;
-  font-size: 14px;
+.file-upload-icon--uploaded {
+  border-color: color-mix(in oklab, var(--primary) 50%, transparent);
+  background-color: color-mix(in oklab, var(--primary) 10%, transparent);
 }
-.shareFile p {
+
+.upload-file h4 {
+  color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
+  font-size: 14px;
+  text-align: center;
+}
+.upload-file p {
   color: var(--color-gray);
   text-align: center;
 }
-.shareFile input {
+.upload-file input {
   display: none;
 }
-.shareFile > button {
+.upload-file > button {
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 10px;
   border: 0;
-  border-radius: 2.5px;
-  background-color: color-mix(in oklab, var(--primary) 50%, transparent);
+  border-radius: 4px;
   outline: none;
+  background-color: color-mix(in oklab, var(--primary) 50%, transparent);
   gap: 5px;
   transition: ease-in-out 150ms;
 }
-.shareFile button:disabled {
+.upload-file button:disabled {
   cursor: not-allowed;
   opacity: 0.35;
 }
-.shareFile button img {
-  object-fit: contain;
+.upload-file button img {
   width: auto;
   height: 14px;
+  object-fit: contain;
   transition: ease-in-out 150ms;
 }
-.shareFile button p {
+.upload-file button p {
   color: var(--color-black);
   font-weight: bold;
 }
 
-.fileUploaded {
-  border-color: color-mix(in oklab, var(--primary) 50%, transparent);
-  background-color: color-mix(in oklab, var(--primary) 10%, transparent);
-}
-.dragging {
+.file-drop--dragging {
   border-color: color-mix(in oklab, var(--primary) 50%, transparent) !important;
   box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--primary) 35%, transparent);
 }
-.loading {
+.upload-btn--loading {
   animation: pulse 2s ease-in-out infinite;
 }
 
-.shareNotice {
+.upload-notice {
   display: flex;
   justify-content: center;
+  margin-top: auto;
   padding: 5px;
   border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
-  border-radius: 2.5px;
-  margin-top: auto;
+  border-radius: 4px;
   background-color: color-mix(in oklab, var(--secondary) 10%, transparent);
 }
-.shareNotice p {
+.upload-notice p {
   color: var(--color-gray);
-  text-align: center;
   font-size: 12px;
+  text-align: center;
 }
 
-.yamlGenerator {
+
+/* ============================================================
+   SHARE — YAML Generator & Downloader
+   ============================================================ */
+.yaml-generator {
   display: flex;
   flex-direction: column;
-  padding: 15px;
-  border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
-  border-radius: 2.5px;
-  background-color: color-mix(in oklab, var(--secondary) 10%, transparent);
-  gap: 15px;
+  padding: 18px;
+  border: 1px solid color-mix(in oklab, var(--secondary) 40%, transparent);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--secondary) 8%, transparent);
+  gap: 14px;
   transition: ease-in-out 150ms;
 }
 
-.generatorInput {
+.generator-title {
   display: flex;
-  gap: 15px;
+  align-items: center;
+  gap: 8px;
 }
-.generatorInput input {
+.generator-title img {
+  width: auto;
+  height: 18px;
+  object-fit: contain;
+  filter: invert(0.95);
+}
+.generator-title h4 {
+  color: var(--color-white);
+  font-family: var(--font-orbitron);
+  font-size: 16px;
+}
+
+.generator-desc {
+  color: var(--color-gray);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.generator-input {
+  display: flex;
+  gap: 10px;
+}
+.generator-input input {
   flex: 1;
-  padding: 5px 15px;
-  border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent);
-  border-radius: 2.5px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 4px;
+  outline: none;
   color: color-mix(in oklab, var(--color-white) 90%, var(--color-gray));
-  background-color: transparent;
-  outline: none; 
-}
-.generatorInput button {
-  cursor: pointer;
-  width: 120px;
-  padding: 5px 15px;
-  border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
-  border-radius: 2.5px;
-  color: var(--color-black);
-  font-weight: bold;
-  background-color: color-mix(in oklab, var(--secondary) 65%, transparent);
+  font-size: 13px;
+  background-color: color-mix(in oklab, var(--background) 60%, transparent);
   transition: ease-in-out 150ms;
 }
-.generatorInput button:disabled {
+.generator-input input:focus {
+  border-color: color-mix(in oklab, var(--secondary) 60%, transparent);
+}
+.generator-input button {
+  cursor: pointer;
+  width: 110px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
+  border-radius: 4px;
+  color: var(--color-white);
+  font-size: 13px;
+  font-weight: 600;
+  background-color: color-mix(in oklab, var(--secondary) 45%, transparent);
+  transition: ease-in-out 150ms;
+}
+.generator-input button:disabled {
   cursor: not-allowed;
   opacity: 0.35;
   animation: pulse 2s ease-in-out infinite;
 }
 
-.yamlDownloader {
+.yaml-downloader {
   cursor: pointer;
   display: flex;
-  height: 50px;
-  border: 1px solid color-mix(in oklab, var(--accent) 50%, transparent);
-  border-radius: 2.5px;
-  background-color: color-mix(in oklab, var(--accent) 10%, transparent);
+  height: 48px;
+  border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--accent) 8%, transparent);
+  transition: ease-in-out 150ms;
 }
-.yamlName {
-  flex: 1;
+.yaml-file-name {
   display: flex;
+  flex: 1;
   align-items: center;
-  padding-left: 15px;
-  gap: 7.5px;
+  padding-left: 14px;
+  gap: 8px;
 }
-.yamlName img {
-  object-fit: contain;
+.yaml-file-name img {
   width: auto;
-  height: 18px;
+  height: 16px;
+  object-fit: contain;
   filter: invert(0.5);
 }
-.yamlName p {
-  color: var(--color-gray);
+.yaml-file-name p {
+  color: color-mix(in oklab, var(--color-white) 75%, var(--color-gray));
+  font-size: 13px;
+  font-weight: 600;
 }
-.yamlDownloadButton {
-  aspect-ratio: 1/1;
+.yaml-download-btn {
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
+  aspect-ratio: 1/1;
   border: 0;
-  border-left: 1px solid color-mix(in oklab, var(--accent) 50%, transparent);
+  border-left: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
   background-color: transparent;
 }
-.yamlDownloadButton img {
-  object-fit: contain;
+.yaml-download-btn img {
   width: auto;
-  height: 24px;
+  height: 20px;
+  object-fit: contain;
   filter: invert(0.65);
   transition: ease-in-out 150ms;
 }
 
-.right {
-  flex: 1;
-}
-.myAgentsTitle {
+
+/* ============================================================
+   SHARE — Agent Grid & Cards
+   ============================================================ */
+.my-agents-title {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.myAgentsTitle img {
-  object-fit: contain;
+.my-agents-title img {
   width: auto;
   height: 24px;
+  object-fit: contain;
   filter: invert(0.95);
 }
-.myAgentsTitle h4 {
+.my-agents-title h4 {
   color: var(--color-white);
   font-family: var(--font-orbitron);
   font-size: 24px;
 }
 
-.agents {
+.agent-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   margin-top: 25px;
   margin-bottom: 15px;
-  gap: 25px;
+  gap: 20px;
 }
-.card {
+.agent-card {
   display: flex;
-  padding: 15px;
+  flex-direction: column;
+  padding: 18px;
   border: 1px solid transparent;
-  border-radius: 2.5px;
+  border-radius: 4px;
   background-color: color-mix(in oklab, var(--card) 95%, transparent);
   backdrop-filter: blur(5px);
-  gap: 15px;
+  gap: 12px;
+  transition: ease-in-out 200ms;
+}
+
+.agent-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.agent-card-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--card) 95%, var(--foreground));
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.agent-card-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.agent-card-name {
+  overflow: hidden;
+  color: var(--color-white);
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   transition: ease-in-out 150ms;
 }
 
-.cardLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.cardLeft p {
-  font-size: 32px;
-}
-
-.agentVersion {
-  display: flex;
-  justify-content: center;
-  padding: 2px;
-  border-radius: 2.5px;
-  background-color: color-mix(in oklab, var(--secondary) 35%, transparent);
-}
-.agentVersion p {
-  color: color-mix(in oklab, var(--color-white) 65%, var(--color-gray));
-  font-size: 12px;
-}
-
-.cardRight {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.cardTitle {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5px;
-}
-.cardTitle h4 {
-  color: var(--color-white);
-}
-.cardTitle p {
+.agent-card-slug {
   color: var(--color-gray);
   font-size: 12px;
 }
 
-.cardContent {
-  max-height: 36px;
-  width: 100%;
+.agent-version {
+  display: flex;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--secondary) 35%, transparent);
+  flex-shrink: 0;
 }
-.cardContent p {
+.agent-version p {
+  color: color-mix(in oklab, var(--color-white) 65%, var(--color-gray));
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.agent-card-content {
+  flex: 1;
+}
+.agent-card-content p {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  width: 100%;
-  color: var(--color-gray);
-  font-size: 14px;
+  line-clamp: 2;
   overflow: hidden;
+  color: var(--color-gray);
+  font-size: 13px;
+  line-height: 1.5;
   text-overflow: ellipsis;
 }
 
-.cardOption {
+.agent-card-actions {
   display: flex;
   justify-content: space-between;
-}
-.cardOption > div {
-  display: flex;
-  gap: 7.5px;
-}
-.cardOption button {
-  padding: 2px 5px;
-  font-size: 12px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
 }
 
-.subscribe {
+.agent-card-price p {
+  color: var(--color-blue);
+  font-family: var(--font-orbitron);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.agent-card-actions button {
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* ============================================================
+   SHARE — Action Buttons
+   ============================================================ */
+.btn-subscribe {
   border: 1px solid color-mix(in oklab, var(--secondary) 25%, transparent);
-  border-radius: 2.5px;
+  border-radius: 4px;
   color: var(--color-gray);
   background-color: transparent;
 }
-.subscribed {
+.btn-subscribe--active {
   border-color: color-mix(in oklab, var(--accent) 75%, transparent);
   color: var(--color-white) !important;
   background-color: color-mix(in oklab, var(--accent) 50%, transparent);
 }
 
-.use {
+.btn-use {
   cursor: pointer;
   border: 1px solid color-mix(in oklab, var(--primary) 75%, transparent);
-  border-radius: 2.5px;
+  border-radius: 4px;
   color: color-mix(in oklab, var(--color-white) 75%, transparent);
   background-color: transparent;
   transition: ease-in-out 150ms;
 }
-.delete {
+.btn-delete {
   cursor: pointer;
   border: 1px solid color-mix(in oklab, var(--destructive) 75%, transparent);
-  border-radius: 2.5px;
+  border-radius: 4px;
   color: color-mix(in oklab, var(--color-red) 75%, transparent);
   background-color: transparent;
   transition: ease-in-out 150ms;
 }
-.delete:disabled {
+.btn-delete:disabled {
   cursor: not-allowed;
   opacity: 0.35;
   animation: pulse 2s ease-in-out infinite;
 }
 
-.listIndex {
+
+/* ============================================================
+   SHARE — Pagination
+   ============================================================ */
+.pagination {
   display: flex;
   justify-content: center;
   gap: 15px;
 }
-.listIndex > div {
+.pagination > div {
   cursor: pointer;
   padding: 2.5px 7.5px;
   border: 1px solid var(--border);
   transition: ease-in-out 150ms;
 }
-.listIndex p {
+.pagination p {
   color: var(--color-gray);
   font-size: 12px;
 }
 
-.toggledIndex {
+.pagination-item--active {
   border-color: color-mix(in oklab, var(--primary) 50%, transparent) !important;
   background-color: color-mix(in oklab, var(--primary) 50%, transparent);
 }
-.toggledIndex p {
+.pagination-item--active p {
   color: var(--color-white);
 }
 
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
 @keyframes pulse {
   0%, 100% { opacity: 0.25; }
   50% { opacity: 1; }
 }
+@keyframes skeleton-pulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(255, 255, 255, 0.075); }
+}
 
+
+/* ============================================================
+   SKELETON — Agent Card
+   ============================================================ */
+.skeleton-agent-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  gap: 12px;
+}
+.skeleton-agent-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.skeleton-agent-right {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton-line {
+  border-radius: 4px;
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+.skeleton-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+}
+.skeleton-version {
+  width: 36px;
+  height: 14px;
+}
+.skeleton-name {
+  width: 60%;
+  height: 16px;
+}
+.skeleton-slug {
+  width: 40%;
+  height: 12px;
+}
+.skeleton-desc {
+  width: 90%;
+  height: 12px;
+  margin-top: 4px;
+}
+
+
+/* ============================================================
+   HOVER EFFECTS (pointer device only)
+   ============================================================ */
 @media (hover: hover) {
-  .leftContainer:hover {
+  .upload-container:hover {
     box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--primary) 50%, transparent);
   }
 
-  .shareFile > label:hover {
+  .upload-file > label:hover {
     border-color: color-mix(in oklab, var(--primary) 50%, transparent);
   }
-  .shareFile > label > button:hover {
+  .upload-file > label > button:hover {
     background-color: rgba(255, 255, 255, 0.075);
   }
-  .shareFile > button:not(:disabled):hover img {
+  .upload-file > button:not(:disabled):hover img {
     transform: translateY(-2.5px);
   }
 
-  .yamlGenerator:hover {
-    box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--secondary) 50%, transparent); 
+  .yaml-generator:hover {
+    box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--secondary) 50%, transparent);
   }
-  .generatorInput button:hover {
+  .generator-input button:hover {
     opacity: 0.65;
   }
 
-  .yamlDownloader:hover .yamlDownloadButton img {
+  .yaml-downloader:hover .yaml-download-btn img {
     transform: translateY(2.5px);
   }
 
-  .card:hover {
-    transform: translateY(-5px);
+  .agent-card:hover {
     border-color: color-mix(in oklab, var(--primary) 50%, transparent);
-    box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--primary) 35%, transparent);
+    box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--primary) 25%, transparent);
+    transform: translateY(-4px);
   }
 
-  .use:hover {
+  .agent-card:hover .agent-card-name {
+    color: var(--color-blue);
+  }
+
+  .btn-use:hover {
     background-color: rgba(255, 255, 255, 0.075);
   }
-  .delete:hover {
+  .btn-delete:hover {
     background-color: rgba(255, 255, 255, 0.075);
   }
 
-  .listIndex > div:hover {
+  .pagination > div:hover {
     border-color: color-mix(in oklab, var(--primary) 75%, transparent);
   }
 }
 
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media screen and (max-width: 1400px) {
-  .sectionWrapper {
+  .share-section-inner {
     max-width: 48rem;
   }
-  .sharing {
+  .share-layout {
     flex-direction: column;
   }
-  .stickyLeft {
+  .share-left-sticky {
     width: 100%;
   }
 
-  .right {
+  .share-right {
     padding-bottom: 50px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .share-section {
+    padding: 0 16px;
+  }
+
+  .page-title {
+    margin-top: 30px;
+  }
+
+  .page-title h1 {
+    font-size: 24px;
+  }
+
+  .page-title p {
+    font-size: 13px;
+  }
+
+  .share-layout {
+    flex-direction: column;
+    margin-top: 30px;
+    gap: 30px;
+  }
+
+  .share-left-sticky {
+    position: static;
+    width: 100%;
+    padding-bottom: 0;
+    gap: 20px;
+  }
+
+  .upload-wrapper {
+    border-radius: 4px;
+  }
+
+  .upload-container {
+    padding: 14px;
+    gap: 18px;
+  }
+
+  .upload-title h4 {
+    font-size: 16px;
+  }
+
+  .upload-file > label {
+    padding: 20px 15px;
+  }
+
+  .yaml-generator {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .generator-title h4 {
+    font-size: 14px;
+  }
+
+  .generator-desc {
+    font-size: 12px;
+  }
+
+  .generator-input {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .generator-input input {
+    width: 100%;
+  }
+
+  .generator-input button {
+    width: 100%;
+  }
+
+  .my-agents-title h4 {
+    font-size: 18px;
+  }
+
+  .agent-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .agent-card {
+    padding: 14px;
+  }
+
+  .agent-card-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .agent-card-name {
+    font-size: 14px;
+  }
+
+  .agent-card-content p {
+    font-size: 12px;
+  }
+
+  .agent-card-price p {
+    font-size: 13px;
+  }
+
+  .share-right {
+    padding-bottom: 30px;
   }
 }

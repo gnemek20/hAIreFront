@@ -1,10 +1,13 @@
-.header {
+/* ============================================================
+   SIGN HEADER — Layout
+   ============================================================ */
+.sign-header {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
 }
-.headerWrapper {
+.sign-header-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -13,38 +16,68 @@
   height: 60px;
   margin: 0 auto;
 }
-.headerWrapper > div {
+.sign-header-inner > div {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.headerWrapper img {
-  object-fit: contain;
+.sign-header-inner img {
   width: auto;
   height: 100%;
+  object-fit: contain;
   filter: brightness(3.75);
 }
 
-.title {
+
+/* ============================================================
+   SIGN HEADER — Title & Navigation
+   ============================================================ */
+.header-title {
   cursor: pointer;
   height: 40px;
   transition: ease-in-out 150ms;
 }
-.title h1 {
+.header-title h1 {
   color: var(--color-white);
   font-size: 18px;
 }
 
-.option p {
+.header-nav p {
   color: var(--color-white);
   font-size: 14px;
 }
-.option a {
+.header-nav a {
   color: var(--color-gray);
 }
 
+
+/* ============================================================
+   HOVER EFFECTS (pointer device only)
+   ============================================================ */
 @media (hover: hover) {
-  .title:hover {
+  .header-title:hover {
     opacity: 0.65;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .sign-header-inner {
+    padding: 0 16px;
+  }
+
+  .header-title h1 {
+    font-size: 14px;
+  }
+
+  .header-title {
+    height: 30px;
+  }
+
+  .header-nav p {
+    font-size: 12px;
   }
 }

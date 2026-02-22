@@ -1,4 +1,7 @@
-.container {
+/* ============================================================
+   SIGN UP — Page Layout
+   ============================================================ */
+.sign-up-page {
   display: flex;
   width: 100dvw;
   height: 100dvh;
@@ -9,108 +12,148 @@
   background-size: 50px 50px;
 }
 
-.form {
+
+/* ============================================================
+   SIGN UP — Form
+   ============================================================ */
+.sign-up-form {
   display: flex;
   flex-direction: column;
   max-width: 385px;
   max-height: 585px;
   width: 50dvw;
   height: 85dvh;
-  border: 1px solid color-mix(in oklab, var(--secondary) 35%, transparent);
-  border-radius: 2.5px;
   margin: auto;
+  border: 1px solid color-mix(in oklab, var(--secondary) 35%, transparent);
+  border-radius: 4px;
   background-color: var(--card);
 }
-.field {
+
+.form-field {
   display: flex;
   flex-direction: column;
   padding: 35px;
   gap: 15px;
 }
-.field > div {
+.form-field > div {
   display: flex;
   flex-direction: column;
   gap: 7.5px;
 }
 
-.formTitle {
+.form-title {
   margin-bottom: 15px;
 }
-.formTitle h1 {
+.form-title h1 {
   color: var(--color-white);
 }
-.formTitle p {
+.form-title p {
   color: var(--color-gray);
   font-size: 14px;
 }
 
-.input p {
+.form-input p {
   color: var(--color-white);
   font-size: 14px;
   font-weight: bold;
 }
-.input input {
+.form-input input {
   padding: 7.5px 10px;
   border: 1px solid color-mix(in oklab, var(--secondary) 35%, transparent);
-  border-radius: 2.5px;
+  border-radius: 4px;
   color: var(--color-white);
   font-size: 14px;
-  outline: 1px solid transparent;
   background-color: transparent;
+  outline: 1px solid transparent;
 }
-.input input:focus {
+.form-input input:focus {
   outline-color: var(--primary);
 }
 
-.submit {
+
+/* ============================================================
+   SIGN UP — Submit & Footer
+   ============================================================ */
+.form-submit {
   margin-top: 25px;
 }
-.submit button {
+.form-submit button {
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 0;
-  border-radius: 2.5px;
   padding: 10px 25px;
+  border: 0;
+  border-radius: 4px;
+  color: #000;
   font-weight: bold;
   background-color: var(--secondary);
   gap: 10px;
   transition: ease-in-out 150ms;
 }
-.submit button:disabled {
+.form-submit button:disabled {
   cursor: not-allowed;
   opacity: 0.35;
 }
-.submit button img {
-  object-fit: contain;
+.form-submit button img {
   width: auto;
   height: 14px;
+  object-fit: contain;
   transition: ease-in-out 150ms;
 }
-.submit button:disabled img {
+.form-submit button:disabled img {
   filter: opacity(0.35);
 }
 
-.belt {
+.form-footer {
   display: flex;
   justify-content: center;
-  padding: 15px;
   margin-top: auto;
   margin-bottom: 35px;
+  padding: 15px;
   background-color: color-mix(in oklab, var(--card) 75%, black);
 }
-.belt p {
+.form-footer p {
   color: var(--color-gray);
   font-size: 12px;
 }
 
+
+/* ============================================================
+   HOVER EFFECTS (pointer device only)
+   ============================================================ */
 @media (hover: hover) {
-  .title:hover {
+  .form-title:hover {
     opacity: 0.65;
   }
 
-  .submit button:not(:disabled):hover img {
+  .form-submit button:not(:disabled):hover img {
     transform: translateX(5px);
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .sign-up-form {
+    width: 90dvw;
+    max-width: none;
+    max-height: none;
+    height: auto;
+    margin: auto;
+  }
+
+  .form-field {
+    padding: 24px 20px;
+  }
+
+  .form-title h1 {
+    font-size: 22px;
+  }
+
+  .form-footer {
+    margin-bottom: 20px;
   }
 }

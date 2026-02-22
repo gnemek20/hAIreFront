@@ -1,0 +1,542 @@
+/* ============================================================
+   AGENT DETAIL DIALOG — Header
+   ============================================================ */
+.panel-header {
+  display: flex;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid var(--border);
+  gap: 15px;
+}
+
+.header-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--card) 95%, var(--foreground));
+  font-size: 24px;
+}
+
+.header-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+}
+
+.header-name {
+  overflow: hidden;
+  color: var(--color-white);
+  font-size: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.version-badge {
+  padding: 1px 8px;
+  border-radius: 4px;
+  color: var(--color-white);
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--secondary);
+}
+
+.slug-text {
+  color: var(--color-gray);
+  font-size: 12px;
+}
+
+.header-price {
+  margin-left: auto;
+  color: var(--color-blue);
+  font-family: var(--font-orbitron);
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Content
+   ============================================================ */
+.panel-content {
+  flex: 1;
+  padding: 20px 25px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 50%, transparent) transparent;
+  gap: 20px;
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Section
+   ============================================================ */
+.section {
+  padding-bottom: 18px;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  margin-bottom: 18px;
+}
+
+.section:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.section-label span {
+  font-size: 16px;
+}
+
+.section-label h4 {
+  color: var(--color-white);
+  font-family: var(--font-orbitron);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Description
+   ============================================================ */
+.description-text {
+  color: color-mix(in oklab, var(--color-white) 80%, var(--color-gray));
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Info Grid (Runtime, LLM, Output)
+   ============================================================ */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--card) 95%, var(--foreground));
+  gap: 0;
+  overflow: hidden;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 95%, var(--foreground));
+  border-right: 1px solid color-mix(in oklab, var(--border) 95%, var(--foreground));
+  gap: 2px;
+}
+
+.info-item:nth-child(2n) {
+  border-right: none;
+}
+
+.info-item:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+/* When there's an odd number of items, last child spans full width */
+.info-grid > .info-item:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  border-right: none;
+}
+
+.info-key {
+  color: var(--color-gray);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  color: var(--color-white);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Auth
+   ============================================================ */
+.auth-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--card) 50%, black);
+  gap: 6px;
+}
+
+.auth-provider {
+  color: var(--color-white);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.auth-service {
+  color: var(--color-gray);
+  font-size: 12px;
+}
+
+.auth-scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.scope-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: color-mix(in oklab, var(--color-white) 70%, var(--color-gray));
+  font-size: 11px;
+  background-color: color-mix(in oklab, var(--primary) 15%, transparent);
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Inputs
+   ============================================================ */
+.inputs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 4px;
+  background-color: color-mix(in oklab, var(--card) 95%, var(--foreground));
+  gap: 8px;
+}
+
+.input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-name {
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.input-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.type-badge {
+  padding: 1px 8px;
+  border-radius: 4px;
+  color: color-mix(in oklab, var(--color-white) 80%, var(--color-gray));
+  font-size: 11px;
+  background-color: color-mix(in oklab, var(--secondary) 25%, transparent);
+}
+
+.required-badge {
+  padding: 1px 8px;
+  border-radius: 4px;
+  color: color-mix(in oklab, var(--color-white) 80%, var(--color-gray));
+  font-size: 11px;
+  background-color: color-mix(in oklab, var(--destructive) 25%, transparent);
+}
+
+.input-placeholder {
+  padding: 6px 10px;
+  border-left: 2px solid color-mix(in oklab, var(--primary) 40%, transparent);
+  color: var(--color-gray);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.input-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.examples-label {
+  color: var(--color-gray);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.example-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: color-mix(in oklab, var(--color-white) 70%, var(--color-gray));
+  font-size: 11px;
+  background-color: color-mix(in oklab, var(--accent) 12%, transparent);
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Actions
+   ============================================================ */
+.panel-actions {
+  display: flex;
+  margin-top: auto;
+  padding: 20px 25px;
+  border-top: 1px solid var(--border);
+  gap: 12px;
+}
+
+.panel-actions button {
+  cursor: pointer;
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition: ease-in-out 150ms;
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Buttons
+   ============================================================ */
+.btn-close {
+  border: 1px solid var(--border);
+  color: var(--color-white);
+  background-color: transparent;
+}
+
+.btn-subscribe-base {
+  transition: ease-in-out 150ms;
+}
+
+.btn-subscribe-base:disabled {
+  opacity: 0.25;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.btn-subscribe {
+  border: 1px solid var(--secondary);
+  color: var(--color-black);
+  background-color: var(--secondary);
+}
+
+.btn-unsubscribe {
+  border: 1px solid var(--destructive);
+  color: var(--color-white);
+  background-color: color-mix(in oklab, var(--destructive) 35%, transparent);
+}
+
+.btn-use {
+  border: 1px solid var(--primary);
+  color: var(--color-black);
+  background-color: var(--primary);
+  box-shadow: 0px 0px 15px 1px color-mix(in oklab, var(--primary) 35%, transparent);
+}
+
+
+/* ============================================================
+   AGENT DETAIL DIALOG — Skeleton Loading
+   ============================================================ */
+.skeleton-line {
+  border-radius: 4px;
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+.skeleton-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+}
+
+.skeleton-name {
+  width: 200px;
+  height: 20px;
+}
+
+.skeleton-meta {
+  width: 140px;
+  height: 14px;
+}
+
+.skeleton-section-label {
+  width: 120px;
+  height: 16px;
+  margin-bottom: 10px;
+}
+
+.skeleton-text-full {
+  width: 100%;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-text-medium {
+  width: 75%;
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-text-short {
+  width: 45%;
+  height: 14px;
+}
+
+.skeleton-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 4px;
+}
+
+
+/* ============================================================
+   ANIMATION
+   ============================================================ */
+@keyframes pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(255, 255, 255, 0.075); }
+}
+
+
+/* ============================================================
+   HOVER EFFECTS (pointer device only)
+   ============================================================ */
+@media (hover: hover) {
+  .btn-close:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+  }
+
+  .btn-subscribe:hover {
+    opacity: 0.85;
+  }
+
+  .btn-unsubscribe:hover {
+    opacity: 0.85;
+  }
+
+  .btn-use:hover {
+    opacity: 0.85;
+  }
+}
+
+
+/* ============================================================
+   HOVER EFFECTS (pointer device only)
+   ============================================================ */
+@media (hover: hover) {
+  .panel-actions button:hover {
+    opacity: 0.65;
+  }
+  .btn-close:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .panel-header {
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    gap: 10px;
+  }
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .header-name {
+    font-size: 16px;
+  }
+
+  .header-price {
+    width: 100%;
+    margin-left: 0;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
+    font-size: 16px;
+    text-align: right;
+  }
+
+  .panel-content {
+    padding: 16px 18px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item:nth-child(2n) {
+    border-right: none;
+  }
+
+  .info-item {
+    border-right: none;
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 95%, var(--foreground));
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+  }
+
+  .info-grid > .info-item:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+
+  .input-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .panel-actions {
+    flex-direction: column;
+    padding: 16px 18px;
+    gap: 8px;
+  }
+
+  .panel-actions button {
+    padding: 12px 15px;
+  }
+}

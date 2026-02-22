@@ -1,4 +1,7 @@
+// ── React ──
 import { useRef, useState } from "react";
+
+// ── Internal Modules ──
 import { ChatMessage } from "@/types/chatTypes";
 
 interface WSMessage {

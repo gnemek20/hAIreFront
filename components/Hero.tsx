@@ -1,19 +1,23 @@
-import styles from "@/styles/components/Hero.module.css";
-import clsx from "clsx";
-import Image from "next/image";
 import React from "react";
+import Image from "next/image";
 
-const hero_background = {
+import clsx from "clsx";
+
+import styles from "@/styles/components/Hero.module.css";
+import { useRouter } from "next/router";
+import { navigateHandler } from "@/utils/navigate";
+
+const HERO_BACKGROUND = {
   src: require("@/public/assets/hero-background.png"),
   alt: "background"
 };
 
-const agent_bot = {
+const ICON_AGENT_BOT = {
   src: require("@/public/assets/agent-bot.svg"),
   alt: "agent"
 };
 
-const hero_text = {
+const HERO_TEXT = {
   h1: [
     "Find the AI Agent",
     "Built for You"
@@ -25,25 +29,27 @@ const hero_text = {
 };
 
 const Hero = () => {
+  const router = useRouter();
+
   return (
     <React.Fragment>
-      <div className={clsx(styles.background)}>
-        <Image src={hero_background.src} alt={hero_background.alt} />
+      <div className={clsx(styles["hero-background"])}>
+        <Image src={HERO_BACKGROUND.src} alt={HERO_BACKGROUND.alt} />
       </div>
-      <div className={clsx(styles.content)}>
-        <div className={clsx(styles.introduce)}>
-          <div className={clsx(styles.additional)}>
+      <div className={clsx(styles["hero-content"])}>
+        <div className={clsx(styles["hero-intro"])}>
+          <div className={clsx(styles["hero-badge"])}>
             <div>
               <p>Welcome to AI Agent Marketplace</p>
             </div>
           </div>
-          <div className={clsx(styles.title)}>
-            <h1>{hero_text.h1}</h1>
-            <p>{hero_text.p}</p>
+          <div className={clsx(styles["hero-title"])}>
+            <h1>{HERO_TEXT.h1}</h1>
+            <p>{HERO_TEXT.p}</p>
           </div>
-          <div className={clsx(styles.option)}>
-            <div>
-              <Image src={agent_bot.src} alt={agent_bot.alt} />
+          <div className={clsx(styles["hero-action"])}>
+            <div onClick={navigateHandler(router, "/share")}>
+              <Image src={ICON_AGENT_BOT.src} alt={ICON_AGENT_BOT.alt} />
               <p>or Share Agent</p>
             </div>
           </div>

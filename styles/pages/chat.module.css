@@ -1,4 +1,7 @@
-.background {
+/* ============================================================
+   CHAT — Background & Layout
+   ============================================================ */
+.chat-background {
   position: absolute;
   top: 0;
   left: 0;
@@ -13,159 +16,239 @@
   background-size: 50px 50px, 50px 50px, 100% 100%;
 }
 
-.container {
+.chat-container {
   display: flex;
   height: calc(100dvh - 61px);
 }
 
-.left {
+
+/* ============================================================
+   CHAT — Sidebar
+   ============================================================ */
+.chat-sidebar {
   width: 300px;
   background-color: color-mix(in oklab, var(--card) 50%, var(--background));
 }
 
-.leftTitle {
+.sidebar-title {
   display: flex;
   align-items: center;
   padding: 15px 25px;
-  gap: 15px;
   border-bottom: 1px solid var(--border);
+  gap: 15px;
 }
-.leftTitle img {
-  object-fit: contain;
+.sidebar-title img {
   width: auto;
   height: 20px;
-  transform: scaleX(-1);
+  object-fit: contain;
   filter: invert(0.95);
+  transform: scaleX(-1);
 }
-.leftTitle h1 {
+.sidebar-title h1 {
   color: var(--color-white);
   font-size: 18px;
 }
 
-.roomList {
+.room-list {
   display: flex;
   flex-direction: column;
   padding: 15px;
   gap: 5px;
 }
-.room {
+.room-item {
   cursor: pointer;
   display: flex;
   align-items: center;
   padding: 7.5px;
   border: 1px solid transparent;
-  border-radius: 2.5px;
+  border-radius: 4px;
   gap: 15px;
   transition: ease-in-out 150ms;
 }
-.room p {
-  font-family: var(--font-orbitron);
+.room-item p {
   color: var(--color-gray);
-  font-weight: bold;
+  font-family: var(--font-orbitron);
   font-size: 14px;
+  font-weight: bold;
 }
 
-.toggledRoom {
+.room-item--active {
   background-color: rgba(255, 255, 255, 0.035);
   box-shadow: 0px 0px 10px 1px color-mix(in oklab, var(--secondary) 35%, transparent);
 }
-.toggledRoom p {
+.room-item--active p {
   color: var(--secondary);
 }
 
-.right {
-  flex: 1;
+
+/* ============================================================
+   CHAT — Main Area & Chat Box
+   ============================================================ */
+.chat-main {
   position: relative;
   display: flex;
+  flex: 1;
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(2px);
 }
 
-.chatbox {
+.chat-box {
   flex: 1;
   overflow-y: auto;
   scrollbar-gutter: stable;
   scrollbar-color: color-mix(in oklab, var(--foreground) 75%, transparent) transparent;
 }
-.chatboxWrapper {
+.chat-box-inner {
   display: flex;
   flex-direction: column;
   max-width: 750px;
   width: 85%;
+  margin: 0 auto;
   padding-top: 50px;
   padding-bottom: calc(126px + 25px);
-  margin: 0 auto;
   gap: 25px;
 }
-.chatboxWrapper > div:not(.md) {
+.chat-box-inner > div:not(.markdown-content) {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
-.agentChat {
+
+/* ============================================================
+   CHAT — Message Bubbles
+   ============================================================ */
+.agent-message {
   display: flex;
   flex-direction: column;
   white-space: pre-line;
   gap: 7.5px;
 }
-.agentChat p {
+.agent-message p {
   color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
   word-break: break-word;
 }
 
-.userChat {
+.user-message {
   display: flex;
   flex-direction: column;
   max-width: 85%;
+  margin-left: auto;
   padding: 10px;
   border: 1px solid color-mix(in oklab, var(--secondary) 35%, transparent);
   border-radius: 5px;
   border-bottom-right-radius: 0;
-  margin-left: auto;
-  background-color: color-mix(in oklab, var(--background) 50%, transparent);
   white-space: pre-line;
+  background-color: color-mix(in oklab, var(--background) 50%, transparent);
   gap: 7.5px;
 }
-.userChat p {
+.user-message p {
   color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
-  word-break: break-word;
   font-size: 14px;
+  word-break: break-word;
 }
 
-.logChat {
+.log-message {
   display: flex;
   flex-direction: column;
   height: 250px;
   padding: 15px;
-  border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
-  border-radius: 5px;
-  border-bottom-left-radius: 0;
-  white-space: pre-line;
-  background-color: color-mix(in oklab, var(--card) 35%, transparent);
-  backdrop-filter: blur(5px);
-  gap: 7.5px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--foreground) 35%, transparent) transparent;
-}
-.logChat {
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  border-radius: 5px;
+  border-bottom-left-radius: 0;
   color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
+  white-space: pre-line;
   word-break: break-word;
+  background-color: color-mix(in oklab, var(--card) 35%, transparent);
+  backdrop-filter: blur(5px);
+  gap: 7.5px;
 }
 
-.processText p {
+.process-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.process-indicator p {
   color: color-mix(in oklab, var(--color-gray) 75%, var(--color-white));
-  font-size: 14px;
+  font-size: 13px;
   animation: pulse 2s ease-in-out infinite;
+}
+.process-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in oklab, var(--color-gray) 30%, transparent);
+  border-top-color: color-mix(in oklab, var(--color-gray) 85%, var(--color-white));
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 @keyframes pulse {
   0%, 100% { opacity: 0.25; }
   50% { opacity: 1; }
 }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes skeleton-pulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(255, 255, 255, 0.075); }
+}
 
-.input {
+
+/* ============================================================
+   SKELETON — Room List & Chat History
+   ============================================================ */
+.skeleton-room {
+  display: flex;
+  align-items: center;
+  padding: 7.5px;
+  gap: 15px;
+}
+.skeleton-room-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+.skeleton-room-name {
+  width: 65%;
+  height: 14px;
+  border-radius: 4px;
+}
+.skeleton-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px 0;
+}
+.skeleton-history-line-1 {
+  width: 75%;
+  height: 14px;
+  border-radius: 4px;
+}
+.skeleton-history-line-2 {
+  width: 55%;
+  height: 14px;
+  border-radius: 4px;
+}
+.skeleton-history-line-3 {
+  width: 35%;
+  height: 14px;
+  border-radius: 4px;
+}
+.skeleton-line {
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+
+/* ============================================================
+   CHAT — Input Area
+   ============================================================ */
+.chat-input {
   position: absolute;
   bottom: 25px;
   display: flex;
@@ -174,32 +257,32 @@
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
-.inputWrapper {
+.chat-input-inner {
   display: flex;
   align-items: flex-end;
   max-width: 750px;
   width: 85%;
   gap: 40px;
 }
-.input textarea {
+.chat-input textarea {
   flex: 1;
   padding: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 35%, transparent) transparent;
   border: 1px solid var(--border);
-  border-radius: 2.5px;
+  border-radius: 4px;
+  outline: none;
   color: var(--color-white);
   font-size: 15px;
   background-color: color-mix(in oklab, var(--background) 50%, transparent);
   backdrop-filter: blur(5px);
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--foreground) 35%, transparent) transparent;
-  outline: none;
   resize: none;
   transition: ease-in-out 150ms;
 }
-.input textarea:focus {
+.chat-input textarea:focus {
   border-color: color-mix(in oklab, var(--primary) 35%, transparent);
 }
-.input button {
+.chat-input button {
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -207,23 +290,27 @@
   width: 40px;
   height: 40px;
   border: 1px solid var(--border);
-  border-radius: 2.5px;
+  border-radius: 4px;
   background-color: color-mix(in oklab, var(--primary) 35%, transparent);
   backdrop-filter: blur(5px);
   transition: ease-in-out 150ms;
 }
-.input button:disabled {
+.chat-input button:disabled {
   cursor: not-allowed;
   opacity: 0.35;
 }
-.input button img {
-  object-fit: contain;
+.chat-input button img {
   width: auto;
   height: 16px;
+  object-fit: contain;
   filter: invert(0.95);
 }
 
-.guard {
+
+/* ============================================================
+   CHAT — OAuth Guard
+   ============================================================ */
+.oauth-guard {
   position: absolute;
   display: flex;
   flex-direction: column;
@@ -233,158 +320,330 @@
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
-.guard > div {
+.oauth-guard > div {
   max-width: 750px;
   width: 85%;
   border: 1px solid color-mix(in oklab, var(--secondary) 50%, transparent);
-  border-radius: 2.5px;
+  border-radius: 4px;
   background-color: color-mix(in oklab, var(--secondary) 35%, transparent);
   backdrop-filter: blur(15px);
 }
 
-.guardNotice {
+.guard-notice {
   display: flex;
   flex-direction: column;
-  padding: 20px;
   margin-top: 25px;
+  padding: 20px;
   gap: 15px;
 }
-.noticeContent {
+.guard-notice-content {
   display: flex;
   gap: 5px;
 }
-.noticeContent > div {
+.guard-notice-content > div {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
-.noticeContent img {
-  object-fit: contain;
+.guard-notice-content img {
   width: auto;
   height: 24px;
+  object-fit: contain;
   filter: invert(0.95);
 }
-.noticeContent h1 {
+.guard-notice-content h1 {
   color: var(--color-white);
   font-size: 16px;
 }
-.noticeContent p {
+.guard-notice-content p {
   color: color-mix(in oklab, var(--color-white) 50%, var(--color-gray));
   font-size: 14px;
 }
 
-.noticeOAuth {
+.guard-oauth-action {
   display: flex;
   justify-content: center;
 }
-.noticeOAuth button {
+.guard-oauth-action button {
   cursor: pointer;
   display: flex;
   align-items: center;
   padding: 5px 25px;
   border: 0;
-  border-radius: 2.5px;
-  background-color: var(--secondary);
+  border-radius: 4px;
   outline: none;
+  background-color: var(--secondary);
   gap: 5px;
 }
-.noticeOAuth button p {
+.guard-oauth-action button p {
   color: var(--color-white);
 }
-.noticeOAuth button img {
-  object-fit: contain;
+.guard-oauth-action button img {
   width: auto;
   height: 14px;
+  object-fit: contain;
   filter: invert(0.95);
   transition: ease-in-out 150ms;
 }
 
-.inputGuard {
+.guard-input-block {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 40px;
   padding: 10px;
-  margin: auto 0 15px;
   gap: 5px;
 }
-.inputGuard img {
-  object-fit: contain;
+.guard-input-block img {
   width: auto;
   height: 14px;
+  object-fit: contain;
   filter: invert(0.95);
 }
-.inputGuard p {
+.guard-input-block p {
   color: var(--color-white);
   font-size: 14px;
 }
 
-.md h1 {
+
+/* ============================================================
+   CHAT — Markdown Content
+   ============================================================ */
+.markdown-content h1 {
   margin: 25px 0px;
   color: var(--color-white);
   font-size: 24px;
 }
-.md h2 {
+.markdown-content h2 {
   margin: 20px 0px;
   color: var(--color-white);
 }
-.md h3 {
+.markdown-content h3 {
   margin: 15px 0px;
   color: var(--color-white);
 }
-.md h4 {
+.markdown-content h4 {
   margin: 10px 0px;
   color: var(--color-white);
 }
-.md p {
+.markdown-content p {
   margin: 5px 0px;
   color: color-mix(in oklab, var(--color-white) 75%, var(--color-gray));
   font-size: 14px;
 }
-.md p:has(img) {
+.markdown-content p:has(img) {
   display: flex;
   flex-direction: column;
 }
-.md a {
+.markdown-content a {
   color: color-mix(in oklab, var(--primary) 50%, var(--color-gray));
 }
-.md a:visited {
+.markdown-content a:visited {
   color: color-mix(in oklab, var(--secondary) 50%, var(--color-gray));
 }
-.md img {
+.markdown-content img {
   margin: 10px 0px;
 }
-.md ol, .md ul {
+.markdown-content ol, .markdown-content ul {
   margin-left: 1.25em;
   color: var(--color-white);
 }
-.md ol:not(:nth-child(1)) {
+.markdown-content ol:not(:nth-child(1)) {
   margin-top: 15px;
 }
-.md ul {
+.markdown-content ul {
   list-style-position: inside;
 }
-.md li {
+.markdown-content li {
   margin: 7.5px 0px;
 }
-.md hr {
+.markdown-content hr {
   height: 1px;
-  border: 0;
   margin: 10px 0px;
+  border: 0;
   background-color: color-mix(in oklab, var(--foreground) 50%, var(--border));
 }
 
+
+/* ============================================================
+   CHAT — Back Button (mobile only)
+   ============================================================ */
+.chat-back-btn {
+  display: none;
+}
+
+
+/* ============================================================
+   HOVER EFFECTS (pointer device only)
+   ============================================================ */
 @media (hover: hover) {
-  .room:hover {
+  .room-item:hover {
     background-color: rgba(255, 255, 255, 0.035);
   }
   
-  .input button:not(:disabled):hover {
+  .chat-input button:not(:disabled):hover {
     opacity: 0.65;
   }
 
-  .noticeOAuth button:hover img {
+  .guard-oauth-action button:hover img {
     transform: translateX(5px);
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .chat-container {
+    flex-direction: column;
+    height: calc(100dvh - 85px);
+  }
+
+  /* ── Mobile Show / Hide Pattern ── */
+  .sidebar-hidden-mobile {
+    display: none !important;
+  }
+
+  .main-hidden-mobile {
+    display: none !important;
+  }
+
+  /* ── Sidebar (Room List — full screen when visible) ── */
+  .chat-sidebar {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    border-right: none;
+  }
+
+  .sidebar-title {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .sidebar-title h1 {
+    font-size: 14px;
+  }
+
+  .room-list {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 16px;
+    gap: 6px;
+  }
+
+  .room-item {
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    white-space: normal;
+    flex-shrink: 0;
+  }
+
+  .room-item p {
+    font-size: 13px;
+  }
+
+  /* ── Chat Main Area ── */
+  .chat-main {
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .chat-back-btn {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 10px 16px;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--color-white);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: color-mix(in oklab, var(--card) 50%, var(--background));
+    gap: 6px;
+  }
+
+  .chat-box {
+    min-height: 0;
+  }
+
+  .chat-box-inner {
+    width: 92%;
+    padding-top: 20px;
+    padding-bottom: calc(90px + 16px);
+    gap: 16px;
+  }
+
+  .user-message {
+    max-width: 90%;
+    padding: 8px;
+  }
+
+  .user-message p {
+    font-size: 13px;
+  }
+
+  .agent-message p {
+    font-size: 13px;
+  }
+
+  .log-message {
+    height: 180px;
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .chat-input {
+    bottom: 12px;
+  }
+
+  .chat-input-inner {
+    width: 92%;
+    gap: 10px;
+  }
+
+  .chat-input textarea {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .chat-input button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .guard-notice {
+    margin-top: 16px;
+    padding: 14px;
+  }
+
+  .guard-notice-content h1 {
+    font-size: 14px;
+  }
+
+  .guard-notice-content p {
+    font-size: 12px;
+  }
+
+  .oauth-guard {
+    top: 41px;
+    height: calc(100% - 41px);
+  }
+
+  .oauth-guard > div {
+    width: 92%;
+  }
+
+  .guard-input-block {
+    bottom: 2px;
   }
 }

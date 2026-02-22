@@ -1,98 +1,140 @@
-.background {
+.hero-background {
   position: absolute;
-  z-index: -1;
   top: 0;
   left: 0;
+  z-index: -1;
+  display: flex;
   width: 100%;
   height: 765px;
-  display: flex;
   overflow: hidden;
+  background-color: oklch(12% .015 240);
 }
-.background img {
-  z-index: -1;
+.hero-background img {
   position: absolute;
-  transform: translate(-50%, -50%);
   top: 50%;
   left: 50%;
-  object-fit: cover;
+  z-index: -1;
   width: 105%;
   height: 105%;
+  object-fit: cover;
   filter: blur(7.5px);
+  transform: translate(-50%, -50%);
+  background-color: oklch(12% .015 240);
 }
 
-.content {
+.hero-content {
   display: flex;
   justify-content: center;
   height: 700px;
   background-color: rgba(0, 0, 0, 0.5);
 }
-.introduce {
+.hero-intro {
   display: flex;
   flex-direction: column;
   margin-top: 125px;
   gap: 20px;
 }
 
-.additional {
+.hero-badge {
   display: flex;
   justify-content: center;
 }
-.additional > div {
+.hero-badge > div {
+  padding: 5px 35px;
   border: 1px solid var(--primary);
   border-radius: 50px;
-  padding: 5px 35px;
   box-shadow: 0px 0px 15px 1px var(--primary);
 }
-.additional p {
+.hero-badge p {
   color: var(--color-blue);
   font-size: 12px;
   font-weight: bold;
 }
 
-.title h1, .title p {
+.hero-title h1, .hero-title p {
   text-align: center;
   white-space: pre-line;
 }
-.title h1 {
+.hero-title h1 {
   color: var(--color-white);
   font-family: var(--font-orbitron);
   font-size: 50px;
 }
-.title p {
+.hero-title p {
   color: var(--color-gray);
   font-size: 24px;
 }
 
-.option {
+.hero-action {
   display: flex;
   justify-content: center;
   margin-top: 50px;
 }
-.option > div {
+.hero-action > div {
   cursor: pointer;
   display: flex;
   align-items: center;
   height: 20px;
   padding: 5px 15px;
   border: 1px solid var(--foreground);
-  border-radius: 2.5px;
+  border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.15);
   gap: 10px;
   transition: ease-in-out 150ms;
 }
-.option img {
-  object-fit: contain;
+.hero-action img {
   width: auto;
   height: 90%;
+  object-fit: contain;
   filter: invert(0.95);
 }
-.option p {
+.hero-action p {
   color: var(--color-white);
   font-size: 12px;
 }
 
 @media (hover: hover) {
-  .option > div:hover {
+  .hero-action > div:hover {
     background-color: rgba(255, 255, 255, 0.075);
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — Mobile (iPhone 14 Pro Max: 430px)
+   ============================================================ */
+@media screen and (max-width: 480px) {
+  .hero-background {
+    height: 100%;
+  }
+
+  .hero-content {
+    height: 460px;
+    padding: 0 20px;
+  }
+
+  .hero-intro {
+    margin-top: 80px;
+    gap: 16px;
+  }
+
+  .hero-badge > div {
+    padding: 4px 20px;
+  }
+
+  .hero-badge p {
+    font-size: 11px;
+  }
+
+  .hero-title h1 {
+    font-size: 28px;
+  }
+
+  .hero-title p {
+    font-size: 16px;
+  }
+
+  .hero-action {
+    margin-top: 30px;
   }
 }

@@ -1,121 +1,114 @@
-import styles from "@/styles/pages/chat.module.css";
-import TopSticky from "@/components/TopSticky";
-import { useSubscriptions } from "@/contexts/SubscriptionsContext";
-import { AgentDetailType, AgentType } from "@/types/agentTypes";
-import { useRouter } from "next/router";
-import React, { ChangeEvent, KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import React, { ChangeEvent, KeyboardEvent, MouseEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useUser } from "@/contexts/UserContext";
-import { ChatHistory, ChatMessage } from "@/types/chatTypes";
-import { useAgentWebSocket } from "@/hooks/useAgentWebSocket";
-import { renderAgentMarkdown } from "@/utils/renderAgentMarkdown";
+import { useRouter } from "next/router";
+
+import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
 import rehypeSanitize from "rehype-sanitize";
-import katexSchema from "@/katexSchema";
+import remarkBreaks from "remark-breaks";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 
-const chat_bubble = {
+import TopSticky from "@/components/TopSticky";
+import { useSubscriptions } from "@/contexts/SubscriptionsContext";
+import { useUser } from "@/contexts/UserContext";
+import { useAgentWebSocket } from "@/hooks/useAgentWebSocket";
+import { AgentDetailType, AgentType } from "@/types/agentTypes";
+import { ChatHistory, ChatMessage } from "@/types/chatTypes";
+import { agentApi, userApi } from "@/utils/api";
+import { navigateHandler } from "@/utils/navigate";
+import { renderAgentMarkdown } from "@/utils/renderAgentMarkdown";
+import katexSchema from "@/katexSchema";
+import styles from "@/styles/pages/chat.module.css";
+
+const ICON_CHAT = {
   src: require("@/public/assets/chat-bubble.svg"),
   alt: "chat"
 };
 
-const lock = {
+const ICON_LOCK = {
   src: require("@/public/assets/lock.svg"),
   alt: "lock"
 };
 
-const hyperlink = {
+const ICON_HYPERLINK = {
   src: require("@/public/assets/hyperlink.svg"),
   alt: "hyperlink"
 };
 
-const send = {
+const ICON_SEND = {
   src: require("@/public/assets/send.svg"),
   alt: "send"
 };
 
 const Chat = () => {
+  // ── Hooks ──
   const router = useRouter();
   const user = useUser();
   const subscriptions = useSubscriptions();
-  
+
+  // ── Refs ──
   const chatboxRef = useRef<HTMLDivElement>(null);
   const logboxRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const [agentDetails, setAgentDetails] = useState<AgentDetailType[]>([]);
-  
-  const [toggledRoom, setToggledRoom] = useState<AgentType["slug"] | null>(null);
-  const [toggledAgent, setToggledAgent] = useState<AgentDetailType | null>(null);
-  
-  const [textQuery, setTextQuery] = useState<string>("");
-  const [chatHistory, setChatHistory] = useState<ChatHistory>([]);
-  
-  const [isWaitResult, setIsWaitResult] = useState<boolean>(false);
-
-  const [oAuthCode, setOAuthCode] = useState<string>("");
-  const [useOAuthGuard, setUseOAuthGuard] = useState<boolean>(false);
-
-  const socket = useAgentWebSocket(setChatHistory);
-
   const importHistoryRef = useRef<boolean>(false);
   const shouldPostRef = useRef<boolean>(false);
   
+  // ── State ──
+  const [agentDetails, setAgentDetails] = useState<AgentDetailType[]>([]);
+  
+  const [activeRoom, setActiveRoom] = useState<AgentType["slug"] | null>(null);
+  const [activeAgent, setActiveAgent] = useState<AgentDetailType | null>(null);
+  
+  const [messageInput, setMessageInput] = useState<string>("");
+  const [chatHistory, setChatHistory] = useState<ChatHistory>([]);
+  
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
+
+  const [oauthCode, setOauthCode] = useState<string>("");
+  const [showOAuthGuard, setShowOAuthGuard] = useState<boolean>(false);
+  const [isRoomsLoading, setIsRoomsLoading] = useState<boolean>(true);
+  const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(false);
+
+  // ── Socket ──
+  const socket = useAgentWebSocket(setChatHistory);
+  
+  // ── Helpers ──
   const resetChat = () => {
-    setTextQuery("");
+    setMessageInput("");
     setChatHistory([]);
   };
 
-  const getChatHistory = async () => {
-    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
-    if (user.token === "" || !toggledRoom) return;
+  // ── Data Fetching ──
+  const fetchChatHistory = async () => {
+    if (user.token === "" || !activeRoom) return;
 
     importHistoryRef.current = true;
+    setIsHistoryLoading(true);
 
     try {
-      const res = await fetch(`${serverURL}/users/chat/history`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_token: user.token,
-          slug: toggledRoom
-        })
-      });
-
-      const data = await res.json();
+      const data = await userApi.getChatHistory(user.token, activeRoom);
 
       if (data.status === "success") {
-        setChatHistory(data["chat_history"]);
+        setChatHistory(data.chat_history);
       }
     } catch (error) {
       window.alert("History error");
       router.reload();
+    } finally {
+      setIsHistoryLoading(false);
     }
   };
 
-  const postChatHistory = async () => {
-    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
+  const saveChatHistory = async () => {
     if (user.token === "") return;
 
     try {
-      const res = await fetch(`${serverURL}/users/chat/save`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_token: user.token,
-          slug: toggledRoom,
-          chat_history: chatHistory
-        })
-      });
-
-      const data = await res.json();
+      const data = await userApi.saveChatHistory(user.token, activeRoom!, chatHistory);
 
       if (data.status !== "success") {
-        console.error("error:", data["detail"]);
+        console.error("error:", data.detail);
       }
     } catch (error) {
       window.alert("Save error");
@@ -125,23 +118,15 @@ const Chat = () => {
     }
   };
 
-  const getAgentDetail = async (slugs: AgentType["slug"][]) => {
-    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
-    if (!serverURL) return;
-
+  const fetchAgentDetails = async (slugs: AgentType["slug"][]) => {
     let results: AgentDetailType[] = [];
     for (const slug of slugs) {
       try {
-        const res = await fetch(`${serverURL}/api/agents/${slug}`, {
-          method: "GET"
-        });
-  
-        const data = await res.json();
-        const detail = data["agent"] as Omit<AgentDetailType, "slug">;
+        const data = await agentApi.getAgentDetail(slug);
 
         results.push({
           slug,
-          ...detail
+          ...data.agent
         });
       } catch (error) {
         window.alert("Get agent error");
@@ -150,6 +135,7 @@ const Chat = () => {
     }
 
     setAgentDetails(results);
+    setIsRoomsLoading(false);
   };
 
   const autoResizeTextarea = () => {
@@ -196,24 +182,43 @@ const Chat = () => {
     textarea.style.overflowY = lines > maxLines ? "auto" : "hidden";
   };
 
-  const handleClickRoom = (target: AgentType["slug"]) => {
+  // ── Handlers ──
+  const handleSelectRoom = (target: AgentType["slug"], event: MouseEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+      window.open(`/chat?room=${target}`, "_blank");
+      return;
+    }
+
     resetChat();
-    setToggledRoom(target);
+    setActiveRoom(target);
     router.push({
       pathname: router.pathname,
       query: { room: target }
     }, undefined, { shallow: true });
   };
 
-  const handleChangeTextQuery = (event: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleBackToRooms = (event: MouseEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+      window.open("/chat", "_blank");
+      return;
+    }
+
+    resetChat();
+    setActiveRoom(null);
+    router.push({
+      pathname: router.pathname,
+    }, undefined, { shallow: true });
+  };
+
+  const handleMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const target = event.target;
     const value = target.value;
 
-    setTextQuery(value);
+    setMessageInput(value);
     autoResizeTextarea();
   };
 
-  const handlePressShiftEnter = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const key = event.key;
     if (key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -223,17 +228,17 @@ const Chat = () => {
   }
 
   const handleSubmit = () => {
-    if (!textQuery || !toggledRoom || !toggledAgent) return;
-    setIsWaitResult(true);
+    if (!messageInput || !activeRoom || !activeAgent) return;
+    setIsWaiting(true);
 
-    const inputName = toggledAgent.inputs[0]?.name ?? null;
+    const inputName = activeAgent.inputs[0]?.name ?? null;
     if (!inputName) return;
 
     const userMessage: ChatMessage = {
       id: String(Date.now()),
-      slug: toggledRoom,
+      slug: activeRoom,
       sender: "user",
-      content: textQuery,
+      content: messageInput,
       timestamp: Date.now()
     };
     setChatHistory((prev) => [...prev, userMessage]);
@@ -243,7 +248,7 @@ const Chat = () => {
       ...prev,
       {
         id: logId,
-        slug: toggledRoom,
+        slug: activeRoom,
         sender: "log",
         content: "",
         timestamp: Date.now(),
@@ -251,19 +256,19 @@ const Chat = () => {
       }
     ]);
 
-    socket.run(userMessage, toggledRoom, inputName, logId, oAuthCode || undefined,
+    socket.run(userMessage, activeRoom, inputName, logId, oauthCode || undefined,
       (finalContent?: object) => {
         if (!finalContent) return;
         shouldPostRef.current = true;
 
         const markdown = renderAgentMarkdown(
           finalContent,
-          toggledRoom as "smart-sourcer" | "email-ghostwriter"
+          activeRoom as "smart-sourcer" | "email-ghostwriter"
         );
 
         const agentMessage: ChatMessage = {
           id: String(Date.now()),
-          slug: toggledRoom,
+          slug: activeRoom,
           sender: "agent",
           content: markdown,
           timestamp: Date.now()
@@ -276,7 +281,7 @@ const Chat = () => {
           agentMessage
         ]);
 
-        setIsWaitResult(false);
+        setIsWaiting(false);
       },
       (logChunk: string) => {
         setChatHistory(prev => 
@@ -291,18 +296,18 @@ const Chat = () => {
       },
     );
 
-    setTextQuery("");
+    setMessageInput("");
   };
 
   const handleInputResponse = () => {
-    if (!textQuery || !toggledRoom || isWaitResult) return;
-    setIsWaitResult(true);
+    if (!messageInput || !activeRoom || isWaiting) return;
+    setIsWaiting(true);
 
     const userMessage: ChatMessage = {
       id: String(Date.now()),
-      slug: toggledRoom,
+      slug: activeRoom,
       sender: "user",
-      content: textQuery,
+      content: messageInput,
       timestamp: Date.now()
     };
     setChatHistory(prev => [...prev, userMessage]);
@@ -312,26 +317,26 @@ const Chat = () => {
       ...prev,
       {
         id: logId,
-        slug: toggledRoom,
+        slug: activeRoom,
         sender: "log",
         content: "",
         timestamp: Date.now()
       }
     ]);
 
-    socket.sendInput(textQuery, logId,
+    socket.sendInput(messageInput, logId,
       (finalContent?: object) => {
         if (!finalContent) return;
 
         const agentMessage: ChatMessage = {
           id: String(Date.now()),
-          slug: toggledRoom,
+          slug: activeRoom,
           sender: "agent",
           content: JSON.stringify(finalContent, null, 2),
           timestamp: Date.now()
         };
         setChatHistory(prev => [...prev, agentMessage]);
-        setIsWaitResult(false);
+        setIsWaiting(false);
       },
       (logChunk: string) => {
         setChatHistory(prev =>
@@ -346,10 +351,10 @@ const Chat = () => {
       }
     );
 
-    setTextQuery("");
+    setMessageInput("");
   };
 
-  const handleClickOAuth = () => {
+  const handleOAuthClick = () => {
     if (!window.google) {
       alert("Google SDK not loaded");
       return;
@@ -362,8 +367,8 @@ const Chat = () => {
       ux_mode: "popup",
       callback: (response: any) => {
         if (!response.code) return;
-        setOAuthCode(response.code);
-        setUseOAuthGuard(false);
+        setOauthCode(response.code);
+        setShowOAuthGuard(false);
       }
     });
     
@@ -380,7 +385,7 @@ const Chat = () => {
       return;
     }
 
-    if (shouldPostRef.current) postChatHistory();
+    if (shouldPostRef.current) saveChatHistory();
 
     const lastLog = chatHistory.filter(chat => chat.sender === "log").slice(-1)[0];
     if (!lastLog) return;
@@ -395,21 +400,21 @@ const Chat = () => {
   }, [chatHistory]);
 
   useEffect(() => {
-    if (!toggledAgent) return;
+    if (!activeAgent) return;
 
-    if (toggledAgent.resources.auth.length > 0) {
-      setUseOAuthGuard(true);
+    if (activeAgent.resources.auth.length > 0) {
+      setShowOAuthGuard(true);
     }
     else {
-      setUseOAuthGuard(false);
+      setShowOAuthGuard(false);
     }
-  }, [toggledAgent, router.query]);
+  }, [activeAgent, router.query]);
 
   useEffect(() => {
-    if (toggledRoom === "") return;
-    getChatHistory();
-    setToggledAgent(agentDetails.find(detail => detail.slug === toggledRoom) ?? null);
-  }, [toggledRoom]);
+    if (activeRoom === "") return;
+    fetchChatHistory();
+    setActiveAgent(agentDetails.find(detail => detail.slug === activeRoom) ?? null);
+  }, [activeRoom]);
 
   useEffect(() => {
     if (!user.hasAuth()) {
@@ -422,92 +427,157 @@ const Chat = () => {
     }
 
     if (subscriptions.subs.length === 0) return;
-    getAgentDetail(subscriptions.subs);
+    fetchAgentDetails(subscriptions.subs);
   }, [user.token, subscriptions.subs]);
 
   useEffect(() => {
     if (agentDetails.length === 0) return;
 
     const room = router.query["room"] as string;
-    if (room) setToggledRoom(room);
+    if (room) setActiveRoom(room);
   }, [router.query, agentDetails]);
 
   return (
     <React.Fragment>
       <TopSticky />
-      <div className={clsx(styles.background)} />
-      <div className={clsx(styles.container)}>
-        <div className={clsx(styles.left)}>
-          <div className={clsx(styles.leftTitle)}>
-            <Image src={chat_bubble.src} alt={chat_bubble.alt} />
+      <div className={clsx(styles["chat-background"])} />
+
+      <div className={clsx(styles["chat-container"])}>
+        {/* ── Sidebar ── */}
+        <div className={clsx(styles["chat-sidebar"], {
+          [styles["sidebar-hidden-mobile"]]: activeRoom !== null
+        })}>
+          <div className={clsx(styles["sidebar-title"])}>
+            <Image src={ICON_CHAT.src} alt={ICON_CHAT.alt} />
             <h1>Messages</h1>
           </div>
-          <div className={clsx(styles.roomList)}>
-            {agentDetails.map((detail, idx) => (
-              <div className={clsx(styles.room, { [styles.toggledRoom]: toggledRoom === detail.slug })} onClick={() => handleClickRoom(detail.slug)} key={idx}>
+          <div className={clsx(styles["room-list"])}>
+            {isRoomsLoading ? (
+              Array.from({ length: 2 }).map((_, idx) => (
+                <div key={idx} className={clsx(styles["skeleton-room"])}>
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-room-icon"])} />
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-room-name"])} />
+                </div>
+              ))
+            ) : (
+              agentDetails.map((detail, idx) => (
+              <div
+                key={idx}
+                className={clsx(styles["room-item"], {
+                  [styles["room-item--active"]]: activeRoom === detail.slug,
+                })}
+                onClick={(event) => handleSelectRoom(detail.slug, event)}
+              >
                 <p>{detail.info.icon}</p>
                 <p>{detail.info.name}</p>
               </div>
-            ))}
+            ))
+            )}
           </div>
         </div>
-        <div className={clsx(styles.right)}>
-          <div ref={chatboxRef} className={clsx(styles.chatbox)}>
-            <div className={clsx(styles.chatboxWrapper)}>
-              {chatHistory.map((chat) => chat.sender === "agent"
-                ? (
-                  <div className={clsx(styles.md)} key={chat.id}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSchema]]}>
-                      {chat.content}
-                    </ReactMarkdown>
+
+        {/* ── Chat Main ── */}
+        <div className={clsx(styles["chat-main"], {
+          [styles["main-hidden-mobile"]]: activeRoom === null
+        })}>
+
+          {/* Back Button (mobile only) */}
+          <button
+            className={clsx(styles["chat-back-btn"])}
+            onClick={(event) => handleBackToRooms(event)}
+          >
+            ← Rooms
+          </button>
+
+          {/* Chat Box */}
+          <div ref={chatboxRef} className={clsx(styles["chat-box"])}>
+            <div className={clsx(styles["chat-box-inner"])}>
+              {isHistoryLoading && (
+                <div className={clsx(styles["skeleton-history"])}>
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-history-line-1"])} />
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-history-line-2"])} />
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-history-line-3"])} />
+                </div>
+              )}
+              {chatHistory.map((chat) => chat.sender === "agent" ? (
+                <div key={chat.id} className={clsx(styles["markdown-content"])}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
+                    rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSchema]]}
+                  >
+                    {chat.content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <div key={chat.id}>
+                  <div
+                    ref={el => { if (chat.sender === "log") logboxRefs.current[chat.id] = el; }}
+                    className={clsx(styles["message-bubble"], {
+                      [styles["user-message"]]: chat.sender === "user",
+                      [styles["log-message"]]: chat.sender === "log",
+                    })}
+                  >
+                    <p>{chat.content}</p>
                   </div>
-                ) : (
-                  <div key={chat.id}>
-                    <div ref={el => { if (chat.sender === "log") logboxRefs.current[chat.id] = el; }} className={clsx(styles.chat, { [styles.userChat]: chat.sender === "user", [styles.logChat]: chat.sender === "log" })}>
-                      <p>{chat.content}</p>
+                  {chat.sender === "log" && chat.status === "processing" && (
+                    <div className={clsx(styles["process-indicator"])}>
+                      <span className={clsx(styles["process-spinner"])} />
+                      <p>Processing...</p>
                     </div>
-                    {chat.sender === "log" && chat.status === "processing" && (
-                      <div className={clsx(styles.processText)}>
-                        <p>Processing...</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-          <div className={clsx(styles.input)}>
-            <div className={clsx(styles.inputWrapper)}>
-              <textarea ref={textareaRef} id="queryText" rows={1} placeholder={toggledAgent?.inputs[0].placeholder} value={textQuery} onChange={handleChangeTextQuery} onKeyDown={handlePressShiftEnter} />
-              <button disabled={textQuery === "" || isWaitResult} onClick={socket.inputRequested ? handleInputResponse : handleSubmit}>
-                <Image src={send.src} alt={send.alt} />
+
+          {/* Chat Input */}
+          <div className={clsx(styles["chat-input"])}>
+            <div className={clsx(styles["chat-input-inner"])}>
+              <textarea
+                ref={textareaRef}
+                id="queryText"
+                rows={1}
+                placeholder={activeAgent?.inputs[0].placeholder}
+                value={messageInput}
+                onChange={handleMessageChange}
+                onKeyDown={handleKeyDown}
+              />
+              <button
+                disabled={messageInput === "" || isWaiting}
+                onClick={socket.inputRequested ? handleInputResponse : handleSubmit}
+              >
+                <Image src={ICON_SEND.src} alt={ICON_SEND.alt} />
               </button>
             </div>
           </div>
-          {useOAuthGuard && (
-            <div className={clsx(styles.guard)}>
-              <div className={clsx(styles.guardNotice)}>
-                <div className={clsx(styles.noticeContent)}>
+
+          {/* OAuth Guard */}
+          {showOAuthGuard && (
+            <div className={clsx(styles["oauth-guard"])}>
+              <div className={clsx(styles["guard-notice"])}>
+                <div className={clsx(styles["guard-notice-content"])}>
                   <div>
-                    <Image src={lock.src} alt={lock.alt} />
+                    <Image src={ICON_LOCK.src} alt={ICON_LOCK.alt} />
                   </div>
                   <div>
                     <h1>Verification is required.</h1>
                     <p>To use this Agent, you must verify with your Google account. Once verification is complete, you will have access to all features.</p>
                   </div>
                 </div>
-                <div className={clsx(styles.noticeOAuth)}>
-                  <button onClick={handleClickOAuth}>
+                <div className={clsx(styles["guard-oauth-action"])}>
+                  <button onClick={handleOAuthClick}>
                     <p>Authenticate with OAuth</p>
-                    <Image src={hyperlink.src} alt={hyperlink.alt} />
+                    <Image src={ICON_HYPERLINK.src} alt={ICON_HYPERLINK.alt} />
                   </button>
                 </div>
               </div>
-              <div className={clsx(styles.inputGuard)}>
-                <Image src={lock.src} alt={lock.alt} />
+              <div className={clsx(styles["guard-input-block"])}>
+                <Image src={ICON_LOCK.src} alt={ICON_LOCK.alt} />
                 <p>You must complete verification to send a message.</p>
               </div>
             </div>
           )}
+
         </div>
       </div>
     </React.Fragment>

@@ -1,11 +1,18 @@
-import { SubscriptionsProvider } from "@/contexts/SubscriptionsContext";
-import { UserProvider } from "@/contexts/UserContext";
-import "@/styles/globals.css";
+// ── React / Next ──
+import React from "react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import Script from "next/script";
-import React from "react";
+
+// ── External Libraries ──
 import { Toaster } from "sonner";
+
+// ── Internal Modules ──
+import { SubscriptionsProvider } from "@/contexts/SubscriptionsContext";
+import { UserProvider } from "@/contexts/UserContext";
+
+// ── Styles ──
+import "@/styles/globals.css";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

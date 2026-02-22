@@ -57,6 +57,7 @@ body[data-scroll-locked] {
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-orbitron: Orbitron, Noto Sans KR, sans-serif;
   --color-white: oklch(95% .005 240);
+  --color-black: #000;
   --color-gray: oklch(50% .005 240);
   --color-blue: oklch(65% .18 210);
   --color-red: oklch(63.7% .237 25.331);
@@ -64,4 +65,18 @@ body[data-scroll-locked] {
   --input: oklch(25% .02 240 / .5);
   --ring: oklch(65% .18 210);
   --accent: oklch(85% .25 130);
+}
+
+html {
+  scrollbar-gutter: auto;
+}
+
+@media screen and (max-width: 480px) {
+  html {
+    scrollbar-gutter: auto;
+  }
+
+  body[data-scroll-locked] {
+    margin-right: 0px !important;
+  }
 }

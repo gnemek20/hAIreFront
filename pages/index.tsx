@@ -1,28 +1,31 @@
-import styles from "@/styles/pages/marketplace.module.css";
-import Hero from "@/components/Hero";
-import clsx from "clsx";
-import React, { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AgentDetailType, AgentType } from "@/types/agentTypes";
 import { useRouter } from "next/router";
-import { debounceTimer } from "@/utils/timer";
-import { useUser } from "@/contexts/UserContext";
-import TopSticky from "@/components/TopSticky";
-import { useSubscriptions } from "@/contexts/SubscriptionsContext";
-import OverlayPanel from "@/components/OverlayPanel";
+
+import clsx from "clsx";
 import { toast } from "sonner";
 
-const up_chart = {
+import AgentDetailDialog from "@/components/AgentDetailDialog";
+import Hero from "@/components/Hero";
+import TopSticky from "@/components/TopSticky";
+import { useSubscriptions } from "@/contexts/SubscriptionsContext";
+import { useUser } from "@/contexts/UserContext";
+import { AgentDetailType, AgentType } from "@/types/agentTypes";
+import { ApiError, agentApi, userApi } from "@/utils/api";
+import { debounceTimer } from "@/utils/timer";
+import styles from "@/styles/pages/marketplace.module.css";
+
+const ICON_UP_CHART = {
   src: require("@/public/assets/up-chart.svg"),
   alt: "up"
 };
 
-const tag_list = [
+const TAG_LIST = [
   "All",
   "Develop"
 ];
 
-const dummyData: AgentType[] = [
+const DUMMY_AGENTS: AgentType[] = [
   {
     slug: "blind-resume-scanner",
     name: "[Mock Data] 블라인드 레쥬메 스캐너",
@@ -36,7 +39,7 @@ const dummyData: AgentType[] = [
     name: "[Mock Data] 회의록 액션아이템 추출기",
     version: "1.4.1",
     description: "[Nothing Event] 회의록 텍스트에서 핵심 요약과 담당자별 액션아이템을 자동으로 추출합니다.",
-    price: 700,
+    price: 8000,
     icon: "📋",
   },
   {
@@ -44,7 +47,7 @@ const dummyData: AgentType[] = [
     name: "[Mock Data] 개인정보 마스킹 에이전트",
     version: "1.5.2",
     description: "[Nothing Event] 문서 속 개인정보를 자동으로 탐지하고 마스킹 처리하여 안전한 문서를 생성합니다.",
-    price: 800,
+    price: 5123850,
     icon: "🛡️",
   },
   {
@@ -52,7 +55,7 @@ const dummyData: AgentType[] = [
     name: "[Mock Data] 영수증 & 인보이스 정리봇",
     version: "1.8.1",
     description: "[Nothing Event] 영수증과 인보이스 내용을 입력하면 항목별로 분류하고 경비 보고서를 자동 생성합니다.",
-    price: 500,
+    price: 200,
     icon: "🧾",
   },
   {
@@ -82,34 +85,29 @@ const dummyData: AgentType[] = [
 ];
 
 const Marketplace = () => {
+  // ── Hooks ──
   const router = useRouter();
   const user = useUser();
   const subscriptions = useSubscriptions();
+
+  // ── Refs ──
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // ── State ──
   const [agentsData, setAgentsData] = useState<AgentType[]>([]);
   const [agents, setAgents] = useState<AgentType[][]>([]);
   const [agentDetail, setAgentDetail] = useState<AgentDetailType | null>(null);
 
   const [subscribedSlugs, setSubscribedSlugs] = useState<AgentType["slug"][]>([]);
 
-  const [searchValue, setSearchValue] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const [toggledTag, setToggledTag] = useState<string>(tag_list[0]);
-  const [toggledPage, setToggledPage] = useState<number>(1);
-  const [toggledOverlay, setToggledOverlay] = useState<boolean>(false);
+  const [activeTag, setActiveTag] = useState<string>(TAG_LIST[0]);
+  const [activePage, setActivePage] = useState<number>(1);
+  const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const changeTag = (newTag: string) => {
-    setToggledTag(newTag);
-  };
-
-  const changePage = (newPage: number) => {
-    router.push({
-      pathname: router.pathname,
-      query: { page: newPage }
-    }, undefined, { shallow: true });
-  };
-
+  // ── Helpers ──
   const sliceArray = (arr: AgentType[], size = 6): AgentType[][] => {
     const result = [];
     for (let i = 0; i < arr.length; i += size) {
@@ -119,21 +117,19 @@ const Marketplace = () => {
     return result;
   };
 
-  const getAgentDetail = async (slug: AgentType["slug"]) => {
-    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
-    if (!serverURL) return;
+  const paginateAgents = (candidates: AgentType[]) => {
+    const sliced = sliceArray(candidates);
+    setAgents(sliced);
+  };
 
+  // ── Data Fetching ──
+  const fetchAgentDetail = async (slug: AgentType["slug"]) => {
     try {
-      const res = await fetch(`${serverURL}/api/agents/${slug}`, {
-        method: "GET"
-      });
-
-      const data = await res.json();
-      const detail = data["agent"] as Omit<AgentDetailType, "slug">;
+      const data = await agentApi.getAgentDetail(slug);
 
       setAgentDetail({
         slug,
-        ...detail,
+        ...data.agent,
         modelcard: data.model_card
       });
     } catch (error) {
@@ -142,22 +138,17 @@ const Marketplace = () => {
     }
   };
 
-  const getAgents = async () => {
-    const serverURL = process.env.NEXT_PUBLIC_AGENT_SERVER;
-    if (!serverURL) return;
-
+  const fetchAgents = async () => {
     try {
-      const res = await fetch(`${serverURL}/api/agents`, {
-        method: "GET"
-      });
-      if (!res.ok) return;
-
-      const data = await res.json();
-      // setAgentsData(data["agents"]);
-      setAgentsData([...data["agents"], ...dummyData]);
+      const data = await agentApi.getAgents();
+      // setAgentsData(data.agents);
+      setAgentsData([...data.agents, ...DUMMY_AGENTS]);
     } catch (error) {
+      if (error instanceof ApiError) return;
       window.alert("Get agents error");
       router.reload();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -166,10 +157,10 @@ const Marketplace = () => {
 
     let result = [];
     for (const ag of agentsData) {
-      if (ag.name?.includes(searchValue) || ag.description?.includes(searchValue)) result.push(ag);
+      if (ag.name?.includes(searchQuery) || ag.description?.includes(searchQuery)) result.push(ag);
     }
 
-    computeAgents(result);
+    paginateAgents(result);
   };
 
   const computeAgents = (candidates: AgentType[]) => {
@@ -178,76 +169,56 @@ const Marketplace = () => {
   };
 
   const subscribeAgent = async (newSlug: AgentType["slug"]) => {
-    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
     if (!user.token) return;
 
     try {
-      const res = await fetch(`${serverURL}/users/subscriptions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_token: user.token,
-          subscriptions: [newSlug]
-        })
-      });
+      await userApi.subscribe(user.token, [newSlug]);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        const newSubscription = [...subscribedSlugs, newSlug];
-        subscriptions.setSubs(newSubscription)
-        setSubscribedSlugs(newSubscription);
-      }
-      else {
-        console.error("Subscribe failed:", data.detail || data);
-      }
+      const newSubscription = [...subscribedSlugs, newSlug];
+      subscriptions.setSubs(newSubscription)
+      setSubscribedSlugs(newSubscription);
     } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Subscribe failed:", (error.data as any)?.detail || error.data);
+        return;
+      }
       window.alert("Subscribe error");
       router.reload();
     }
   };
 
   const unSubscribeAgent = async (targetSlug: AgentType["slug"]) => {
-    const serverURL = process.env.NEXT_PUBLIC_USER_SERVER;
     if (!user.token) return;
 
     try {
-      const res = await fetch(`${serverURL}/users/subscriptions`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_token: user.token,
-          slug: targetSlug
-        })
-      });
+      await userApi.unsubscribe(user.token, targetSlug);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        const newSubscription = subscribedSlugs.filter(slug => slug !== targetSlug);
-        subscriptions.setSubs(newSubscription);
-        setSubscribedSlugs(newSubscription);
-      }
-      else {
-        console.error("unSubscribe failed:", data.detail || data);
-      }
+      const newSubscription = subscribedSlugs.filter(slug => slug !== targetSlug);
+      subscriptions.setSubs(newSubscription);
+      setSubscribedSlugs(newSubscription);
     } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("unSubscribe failed:", (error.data as any)?.detail || error.data);
+        return;
+      }
       window.alert("unSubscribe error");
       router.reload();
     }
   };
 
+  // ── Handlers ──
   const handleClickAgent = (targetSlug: AgentType["slug"]) => {
     if (!user.hasAuth()) {
       router.push("/signin");
       return;
     }
 
-    const isReal = dummyData.flat().some(d => d.slug === targetSlug);
+    const isReal = DUMMY_AGENTS.flat().some(d => d.slug === targetSlug);
     if (isReal) return;
 
-    setToggledOverlay(true);
-    getAgentDetail(targetSlug);
+    setIsOverlayOpen(true);
+    setAgentDetail(null);
+    fetchAgentDetail(targetSlug);
     
     // if (subscribedSlugs.includes(targetSlug)) unSubscribeAgent(targetSlug);
     // else subscribeAgent(targetSlug);
@@ -263,9 +234,14 @@ const Marketplace = () => {
     if (callback) callback();
   };
 
-  const handleUseAgent = (slug: AgentType["slug"]) => {
+  const handleUseAgent = (slug: AgentType["slug"], event: MouseEvent) => {
     if (!subscribedSlugs.includes(slug)) {
       toast.warning("먼저 Agent를 구독해주세요.");
+      return;
+    }
+
+    if (event.ctrlKey || event.metaKey) {
+      window.open(`/chat?room=${slug}`, "_blank");
       return;
     }
     
@@ -275,21 +251,38 @@ const Marketplace = () => {
     });
   };
 
-  const handleChangeSearchValue = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleSelectTag = (newTag: string) => {
+    setActiveTag(newTag);
+  };
+
+  const handleSelectPage = (newPage: number, event: MouseEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+      window.open(`/?page=${newPage}`, "_blank");
+      return;
+    }
+
+    router.push({
+      pathname: router.pathname,
+      query: { page: newPage }
+    }, undefined, { shallow: true });
+  };
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const value = target.value;
     
-    setSearchValue(value);
+    setSearchQuery(value);
   };
 
-  const handlePressEnter = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const key = event.key;
     if (key === "Enter") searchAgents();
   };
 
+  // ── Effects ──
   useEffect(() => {
     debounceTimer(timerRef, () => {searchAgents()});
-  }, [searchValue]);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (agentsData.length === 0) return;
@@ -307,82 +300,148 @@ const Marketplace = () => {
 
   useEffect(() => {
     const page = router.query["page"] as string;
-    if (page) setToggledPage(parseInt(page));
+    if (page) setActivePage(parseInt(page));
 
-    getAgents();
+    fetchAgents();
   }, [router.query]);
 
   return (
     <React.Fragment>
-      <OverlayPanel isOpen={toggledOverlay} onClose={() => setToggledOverlay(false)} onSubscribe={handleSubscribeAgent} onUnSubscribe={handleUnSubscribeAgent} onUse={handleUseAgent} subscribed={subscribedSlugs} agentDetail={agentDetail} />
+      <AgentDetailDialog
+        isOpen={isOverlayOpen}
+        onClose={() => setIsOverlayOpen(false)}
+        onSubscribe={handleSubscribeAgent}
+        onUnSubscribe={handleUnSubscribeAgent}
+        onUse={handleUseAgent}
+        subscribed={subscribedSlugs}
+        agentDetail={agentDetail}
+      />
       <TopSticky />
       <Hero />
-      <div className={clsx(styles.searchBox)}>
-        <div onKeyDown={handlePressEnter}>
-          <input type="text" placeholder="Search Agent..." value={searchValue} onChange={handleChangeSearchValue} />
+
+      {/* ── Search ── */}
+      <div className={clsx(styles["search-section"])}>
+        <div onKeyDown={handleSearchKeyDown}>
+          <input
+            type="text"
+            placeholder="Search Agent..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
           <button onClick={searchAgents}>Search</button>
         </div>
       </div>
-      <div className={clsx(styles.tagBox)}>
-        <div className={clsx(styles.tagList)}>
-          {tag_list.map((tag, idx) => (
-            <div className={clsx({ [styles.toggledTag]: toggledTag === tag })} onClick={() => changeTag(tag)} key={idx}>
+
+      {/* ── Tag Filter ── */}
+      <div className={clsx(styles["tag-filter-bar"])}>
+        <div className={clsx(styles["tag-filter-list"])}>
+          {TAG_LIST.map((tag, idx) => (
+            <div
+              key={idx}
+              className={clsx({
+                [styles["tag-filter-item--active"]]: activeTag === tag,
+              })}
+              onClick={() => handleSelectTag(tag)}
+            >
               <p>{tag}</p>
             </div>
           ))}
         </div>
       </div>
-      <div className={clsx(styles.agentBox)}>
-        <div className={clsx(styles.agentWrapper)}>
-          <div className={clsx(styles.order)}>
+
+      {/* ── Agent List ── */}
+      <div className={clsx(styles["agent-section"])}>
+        <div className={clsx(styles["agent-container"])}>
+
+          {/* Header */}
+          <div className={clsx(styles["agent-list-header"])}>
             <div>
               <h2>AI Agents</h2>
               <h2>{`(${agents.flat().length})`}</h2>
             </div>
             <div>
-              <Image src={up_chart.src} alt={up_chart.alt} />
+              <Image src={ICON_UP_CHART.src} alt={ICON_UP_CHART.alt} />
               <p>Default</p>
             </div>
           </div>
-          <div className={clsx(styles.agentList)}>
-            {agents?.[toggledPage - 1]?.map((agent, idx) => (
-              <div onClick={() => handleClickAgent(agent["slug"])} key={idx}>
-                <div className={clsx(styles.agentProfile)}>
-                  <div>
-                    <div className={clsx(styles.title)}>
-                      <div className={clsx(styles.name)}>
-                        <h4>{`${agent.icon} ${agent.name}`}</h4>
+
+          {/* Grid */}
+          <div className={clsx(styles["agent-grid"])}>
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className={clsx(styles["skeleton-card"])}>
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-title"])} />
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-desc-1"])} />
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-desc-2"])} />
+                  <div className={clsx(styles["skeleton-line"], styles["skeleton-desc-3"])} />
+                  <hr />
+                  <div className={clsx(styles["skeleton-footer"])}>
+                    <div className={clsx(styles["skeleton-line"], styles["skeleton-btn"])} />
+                    <div className={clsx(styles["skeleton-line"], styles["skeleton-price"])} />
+                  </div>
+                </div>
+              ))
+            ) : (
+              agents?.[activePage - 1]?.map((agent, idx) => (
+              <div key={idx} onClick={() => handleClickAgent(agent["slug"])}>
+                <div className={clsx(styles["agent-card-body"])}>
+
+                  {/* Header: Icon + Name + Version */}
+                  <div className={clsx(styles["agent-card-header"])}>
+                    <div className={clsx(styles["agent-card-icon"])}>{agent.icon}</div>
+                    <div className={clsx(styles["agent-card-title"])}>
+                      <div className={clsx(styles["agent-card-name"])}>
+                        <h4>{agent.name}</h4>
                       </div>
-                      <div className={clsx(styles.version)}>
+                      <div className={clsx(styles["agent-card-version"])}>
                         <p>{agent.version}</p>
                       </div>
                     </div>
-                    <div className={clsx(styles.description)}>
-                      <p>{agent.description}</p>
+                  </div>
+
+                  {/* Description */}
+                  <div className={clsx(styles["agent-card-description"])}>
+                    <p>{agent.description}</p>
+                  </div>
+
+                  {/* Footer */}
+                  <div className={clsx(styles["agent-card-footer"])}>
+                    <div
+                      className={clsx(
+                        styles["agent-subscribe-btn"],
+                        { [styles["agent-subscribe-btn--active"]]: subscribedSlugs.includes(agent.slug) }
+                      )}
+                    >
+                      <p>{subscribedSlugs.includes(agent.slug) ? "구독중" : "구독"}</p>
+                    </div>
+                    <div className={clsx(styles["agent-price"])}>
+                      <p>{`$ ${String(agent.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}</p>
                     </div>
                   </div>
-                  <hr />
-                  <div className={clsx(styles.option)}>
-                    <div className={clsx(styles.subscribe, { [styles.subscribed]: subscribedSlugs.includes(agent.slug) })}>
-                      <p>구독</p>
-                    </div>
-                    <div className={clsx(styles.price)}>
-                      <p>{`\\${agent.price}`}</p>
-                    </div>
-                  </div>
+
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
+
+          {/* Pagination */}
           {agents.length > 1 && (
-            <div className={clsx(styles.listIndex)}>
+            <div className={clsx(styles["pagination"])}>
               {agents.map((_, idx) => (
-                <div className={clsx({ [styles.toggledIndex]: toggledPage === idx + 1 })} onClick={() => changePage(idx + 1)} key={idx}>
+                <div
+                  key={idx}
+                  className={clsx({
+                    [styles["pagination-item--active"]]: activePage === idx + 1,
+                  })}
+                  onClick={(event) => handleSelectPage(idx + 1, event)}
+                >
                   <p>{idx + 1}</p>
                 </div>
               ))}
             </div>
           )}
+
         </div>
       </div>
     </React.Fragment>

@@ -1,5 +1,6 @@
-import { useRouter } from "next/router";
+// ── React / Next ──
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 interface UserContextType {
   token: string;

@@ -1,5 +1,8 @@
-import { AgentType } from "@/types/agentTypes";
+// ── React ──
 import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
+
+// ── Internal Modules ──
+import { AgentType } from "@/types/agentTypes";
 
 interface SubscriptionsContextType {
   subs: AgentType["slug"][];

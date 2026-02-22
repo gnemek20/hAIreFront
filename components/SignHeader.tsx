@@ -1,25 +1,33 @@
-import styles from "@/styles/components/SignHeader.module.css";
-import clsx from "clsx";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
-const logo_icon = {
+import clsx from "clsx";
+
+import { navigateHandler } from "@/utils/navigate";
+import styles from "@/styles/components/SignHeader.module.css";
+
+const ICON_LOGO = {
   src: require("@/public/images/logo.png"),
   alt: "logo"
 };
 
-const SignHeader = ({ p, a }: { p:string, a: string }) => {
+interface SignHeaderProps {
+  message: string;
+  linkText: string;
+}
+
+const SignHeader = ({ message, linkText }: SignHeaderProps) => {
   const router = useRouter();
 
   return (
-    <div className={clsx(styles.header)}>
-      <div className={clsx(styles.headerWrapper)}>
-        <div className={clsx(styles.title)} onClick={() => router.replace("/")}>
-          <Image src={logo_icon.src} alt={logo_icon.alt} />
+    <div className={clsx(styles["sign-header"])}>
+      <div className={clsx(styles["sign-header-inner"])}>
+        <div className={clsx(styles["header-title"])} onClick={navigateHandler(router, "/")}>
+          <Image src={ICON_LOGO.src} alt={ICON_LOGO.alt} />
           <h1>hAIre</h1>
         </div>
-        <div className={clsx(styles.option)}>
-          <p>{p} <a href={`/${a.toLowerCase().replace(/ /g, "")}`}>{a}</a></p>
+        <div className={clsx(styles["header-nav"])}>
+          <p>{message} <a href={`/${linkText.toLowerCase().replace(/ /g, "")}`}>{linkText}</a></p>
         </div>
       </div>
     </div>
