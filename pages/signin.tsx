@@ -5,9 +5,7 @@ import { useRouter } from "next/router";
 import clsx from "clsx";
 
 import SignHeader from "@/components/SignHeader";
-import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 import { useUser } from "@/contexts/UserContext";
-import { AgentType } from "@/types/agentTypes";
 import { ApiError, userApi } from "@/utils/api";
 import styles from "@/styles/pages/signin.module.css";
 
@@ -20,7 +18,6 @@ const SignIn = () => {
   // ── Hooks ──
   const router = useRouter();
   const user = useUser();
-  const subscriptions = useSubscriptions();
 
   // ── State ──
   const [loginId, setLoginId] = useState<string>("");
@@ -30,22 +27,6 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // ── Data Fetching ──
-  const fetchSubscriptions = async (token: string) => {
-    if (token === "") return;
-    
-    try {
-      const data = await userApi.getSubscriptions(token);
-      subscriptions.setSubs(data.subscriptions);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        console.error("Get subscriptions failed:", (error.data as any)?.detail || error.data);
-        return;
-      }
-      window.alert("Get subscriptions error");
-      router.reload();
-    }
-  };
-
   const signIn = async () => {
     if (isLoading || isSubmitDisabled) return;
     setIsLoading(true);
@@ -54,7 +35,6 @@ const SignIn = () => {
       const data = await userApi.signIn(loginId, password);
 
       user.signIn(data.access_token, data.username);
-      await fetchSubscriptions(data.access_token);
 
       const redirect = router.query["redirect"] as string;
       router.replace(redirect ? redirect : "/");

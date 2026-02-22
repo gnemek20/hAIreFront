@@ -8,7 +8,6 @@ import Script from "next/script";
 import { Toaster } from "sonner";
 
 // ── Internal Modules ──
-import { SubscriptionsProvider } from "@/contexts/SubscriptionsContext";
 import { UserProvider } from "@/contexts/UserContext";
 
 // ── Styles ──
@@ -22,10 +21,8 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
       <Script src="https://accounts.google.com/gsi/client" />
       <UserProvider>
-        <SubscriptionsProvider>
           <Component {...pageProps} />
           <Toaster />
-        </SubscriptionsProvider>
       </UserProvider>
     </React.Fragment>
   );

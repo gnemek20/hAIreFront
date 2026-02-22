@@ -158,7 +158,7 @@
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--foreground) 35%, transparent) transparent;
   border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
-  border-radius: 5px;
+  border-radius: 4px;
   border-bottom-left-radius: 0;
   color: color-mix(in oklab, var(--color-white) 85%, var(--color-gray));
   white-space: pre-line;
@@ -178,6 +178,22 @@
   color: color-mix(in oklab, var(--color-gray) 75%, var(--color-white));
   font-size: 13px;
   animation: pulse 2s ease-in-out infinite;
+}
+.process-stop-btn {
+  margin-left: auto;
+  padding: 2px 10px;
+  border: 1px solid color-mix(in oklab, var(--color-gray) 40%, transparent);
+  border-radius: 4px;
+  background: transparent;
+  color: color-mix(in oklab, var(--color-gray) 75%, var(--color-white));
+  font-size: 12px;
+  cursor: pointer;
+  transition: ease-in-out 150ms;
+}
+.process-stop-btn:hover {
+  border-color: #e55;
+  color: #e55;
+  background-color: rgba(238, 85, 85, 0.1);
 }
 .process-spinner {
   width: 14px;

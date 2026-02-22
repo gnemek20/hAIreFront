@@ -9,9 +9,8 @@ import { toast } from "sonner";
 
 // ── Internal Modules ──
 import TopSticky from "@/components/TopSticky";
-import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 import { useUser } from "@/contexts/UserContext";
-import { AgentType } from "@/types/agentTypes";
+import { Agent } from "@/types/agent";
 import { ApiError, agentApi, userApi } from "@/utils/api";
 
 // ── Styles ──
@@ -93,7 +92,6 @@ const Share = () => {
   // ── Hooks ──
   const router = useRouter();
   const user = useUser();
-  const subscriptions = useSubscriptions();
 
   // ── Refs ──
   const inputRef = useRef<HTMLInputElement>(null);
@@ -104,7 +102,8 @@ const Share = () => {
   const [githubURL, setGithubURL] = useState<string>("");
   const [generatedYaml, setGeneratedYaml] = useState<string>("");
 
-  const [userAgents, setUserAgents] = useState<AgentType[][]>([]);
+  const [userAgents, setUserAgents] = useState<Agent[][]>([]);
+  const [subscribedSlugs, setSubscribedSlugs] = useState<Agent["slug"][]>([]);
 
   const [activePage, setActivePage] = useState<number>(1);
   
@@ -115,7 +114,7 @@ const Share = () => {
   const [isAgentsLoading, setIsAgentsLoading] = useState<boolean>(true);
 
   // ── Helpers ──
-  const sliceArray = (arr: AgentType[], size = 6): AgentType[][] => {
+  const sliceArray = (arr: Agent[], size = 6): Agent[][] => {
     const result = [];
     for (let i = 0; i < arr.length; i += size) {
       result.push(arr.slice(i, i + size));
@@ -124,24 +123,24 @@ const Share = () => {
     return result;
   };
 
-  const sliceAgents = (agents: AgentType[]): AgentType[][] => {
+  const sliceAgents = (agents: Agent[]): Agent[][] => {
     const sliced = sliceArray(agents);
     return sliced;
   };
 
-  const handlePushUserAgent = (newAgent: AgentType) => {
+  const handlePushUserAgent = (newAgent: Agent) => {
     setUserAgents(prev => {
-      const pushed: AgentType[] = [...prev.flat(), newAgent];
-      const sliced: AgentType[][] = sliceAgents(pushed);
+      const pushed: Agent[] = [...prev.flat(), newAgent];
+      const sliced: Agent[][] = sliceAgents(pushed);
 
       return sliced;
     });
   };
 
-  const handleDeleteUserAgent = (targetAgent: AgentType) => {
+  const handleDeleteUserAgent = (targetAgent: Agent) => {
     setUserAgents(prev => {
-      const deleted: AgentType[] = [...prev.flat().filter(agent => agent !== targetAgent)];
-      const sliced: AgentType[][] = sliceAgents(deleted);
+      const deleted: Agent[] = [...prev.flat().filter(agent => agent !== targetAgent)];
+      const sliced: Agent[][] = sliceAgents(deleted);
 
       return sliced;
     });
@@ -190,7 +189,7 @@ const Share = () => {
         return;
       }
 
-      window.alert("Server error");
+      window.alert("Fetch user agents error");
       router.reload();
     }
     finally {
@@ -198,7 +197,7 @@ const Share = () => {
     };
   };
 
-  const saveUserAgent = async (newAgent: AgentType) => {
+  const saveUserAgent = async (newAgent: Agent) => {
     if (!user.token) return;
 
     try {
@@ -221,12 +220,12 @@ const Share = () => {
         return;
       }
 
-      window.alert("Server error");
+      window.alert("Save user agent error");
       router.reload();
     };
   };
   
-  const deleteUserAgent = async (targetAgent: AgentType) => {
+  const deleteUserAgent = async (targetAgent: Agent) => {
     if (!user.token) return;
 
     try {
@@ -235,7 +234,7 @@ const Share = () => {
       toast.success("Agent deleted.");
       handleDeleteUserAgent(targetAgent);
 
-      if (subscriptions.subs.includes(targetAgent.slug)) unSubscribeAgent(targetAgent.slug);
+      if (subscribedSlugs.includes(targetAgent.slug)) unSubscribeAgent(targetAgent.slug);
     }
     catch (error) {
       if (error instanceof ApiError) {
@@ -244,18 +243,18 @@ const Share = () => {
         return;
       }
 
-      window.alert("Server error");
+      window.alert("Delete user agent error");
       router.reload();
     };
   };
 
-  const unSubscribeAgent = async (targetSlug: AgentType["slug"]) => {
+  const unSubscribeAgent = async (targetSlug: Agent["slug"]) => {
     if (!user.token) return;
 
     try {
       await userApi.unsubscribe(user.token, targetSlug);
 
-      subscriptions.setSubs(prev => prev.filter(slug => slug !== targetSlug));
+      setSubscribedSlugs(prev => prev.filter(slug => slug !== targetSlug));
     }
     catch (error) {
       if (error instanceof ApiError) {
@@ -264,7 +263,7 @@ const Share = () => {
         return;
       }
 
-      window.alert("Server error");
+      window.alert("Unsubscribe error");
       router.reload();
     }
   };
@@ -276,7 +275,14 @@ const Share = () => {
     try {
       const data = await agentApi.deploy(file);
 
-      const { status, ...deployedAgent } = data;
+      const deployedAgent: Agent = {
+        slug: data.slug,
+        name: data.name,
+        description: data.description,
+        version: data.version,
+        price: data.price,
+        icon: data.icon,
+      };
       await saveUserAgent(deployedAgent);
     }
     catch (error) {
@@ -286,7 +292,7 @@ const Share = () => {
         return;
       }
 
-      window.alert("Server error");
+      window.alert("Deploy error");
       router.reload();
     }
     finally {
@@ -294,7 +300,7 @@ const Share = () => {
     };
   };
 
-  const deleteAgent = async (targetAgent: AgentType) => {
+  const deleteAgent = async (targetAgent: Agent) => {
     if (isDeleting) return;
     setIsDeleting(true);
 
@@ -310,7 +316,7 @@ const Share = () => {
         return;
       }
 
-      window.alert("Server Error");
+      window.alert("Delete error");
       router.reload();
     }
     finally {
@@ -347,7 +353,7 @@ const Share = () => {
         return;
       }
 
-      window.alert("Server error");
+      window.alert("Generate error");
       router.reload();
     }
     finally {
@@ -416,7 +422,7 @@ const Share = () => {
   }, [router.query]);
 
   useEffect(() => {
-    if (!user.hasAuth()) {
+    if (!user.isSignedIn()) {
       router.push({
         pathname: "/signin",
         query: { redirect: router.pathname }
@@ -426,6 +432,20 @@ const Share = () => {
     }
 
     fetchUserAgents();
+
+    const fetchSubscriptions = async () => {
+      try {
+        const data = await userApi.getSubscriptions(user.token);
+        setSubscribedSlugs(data.subscriptions);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          console.error("Get subscriptions failed:", error.data);
+          toast.error(`Failed to load subscriptions: ${error.message}`);
+        }
+      }
+    };
+
+    fetchSubscriptions();
   }, [user.token]);
 
   return (
@@ -591,7 +611,7 @@ const Share = () => {
                     </div>
                     <div className={clsx(styles["agent-card-actions"])}>
                       <div className={clsx(styles["agent-card-price"])}>
-                        <p>{`$${String(agent.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}</p>
+                        <p>{`$ ${String(agent.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`}</p>
                       </div>
                       <button
                         className={clsx(styles["btn-delete"])}

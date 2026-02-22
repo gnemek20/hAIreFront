@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import clsx from "clsx";
 
 import { useUser } from "@/contexts/UserContext";
-import { CategoryType } from "@/types/agentTypes";
+import { PageCategory } from "@/types/agent";
 import { navigateHandler } from "@/utils/navigate";
 import styles from "@/styles/components/TopSticky.module.css";
 
@@ -26,11 +26,11 @@ const TopSticky = () => {
 
   // ── State ──
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [activeNav, setActiveNav] = useState<CategoryType | null>(null);
+  const [activeNav, setActiveNav] = useState<PageCategory | null>(null);
 
   // ── Effects ──
   useEffect(() => {
-    if (user.hasAuth()) setIsAuthenticated(true);
+    if (user.isSignedIn()) setIsAuthenticated(true);
     else setIsAuthenticated(false);
   }, [user.token]);
 

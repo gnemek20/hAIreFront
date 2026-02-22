@@ -1,6 +1,6 @@
-export type CategoryType = "find" | "share" | "chat";
+export type PageCategory = "find" | "share" | "chat";
 
-export interface AgentType {
+export interface Agent {
   slug: string;
   name: string;
   description: string;
@@ -9,8 +9,8 @@ export interface AgentType {
   icon: string;
 };
 
-export interface AgentDetailType {
-  slug: AgentType["slug"];
+export interface AgentDetail {
+  slug: Agent["slug"];
   info: {
     slug: string;
     name: string;

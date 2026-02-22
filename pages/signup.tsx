@@ -34,7 +34,10 @@ const SignUp = () => {
       await userApi.signUp(loginId, password, username);
       router.replace("/signin");
     } catch (error) {
-      if (error instanceof ApiError) return;
+      if (error instanceof ApiError) {
+        console.error("Sign up failed:", error.data);
+        return;
+      }
       window.alert("Server error");
       router.reload();
     } finally {

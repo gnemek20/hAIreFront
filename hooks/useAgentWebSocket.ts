@@ -2,7 +2,8 @@
 import { useRef, useState } from "react";
 
 // ── Internal Modules ──
-import { ChatMessage } from "@/types/chatTypes";
+import { ChatMessage } from "@/types/chat";
+import { getAgentWsBaseURL } from "@/utils/api";
 
 interface WSMessage {
   type: "output" | "input_request" | "result" | "error" | "done";
@@ -19,13 +20,14 @@ interface AgentWSHook {
     authCode?: string,
     onDone?: (finalContent?: object) => void,
     onLog?: (logContent: string) => void
-  ) => void;
+  ) => Promise<void>;
   sendInput: (
     value: string,
     logId?: string,
     onDone?: (finalContent?: object) => void,
     onLog?: (logContent: string) => void
   ) => void;
+  cancel: () => void;
   isRunning: boolean;
   inputRequested: boolean;
 }
@@ -37,6 +39,19 @@ export function useAgentWebSocket(
   const [isRunning, setIsRunning] = useState(false);
   const [inputRequested, setInputRequested] = useState(false);
 
+  /** 현재 WebSocket 연결을 정리하고 상태를 초기화한다. */
+  const cancel = () => {
+    if (wsRef.current) {
+      wsRef.current.onmessage = null;
+      wsRef.current.onclose = null;
+      wsRef.current.onerror = null;
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    setIsRunning(false);
+    setInputRequested(false);
+  };
+
   const handleWSMessage = (
     event: MessageEvent,
     logId?: string,
@@ -47,12 +62,7 @@ export function useAgentWebSocket(
 
     switch (msg.type) {
       case "output":
-        if (logId && typeof msg.data === "string") {
-          setChatHistory(prev =>
-            prev.map(m =>
-              m.id === logId ? { ...m, content: m.content + msg.data } : m
-            )
-          );
+        if (typeof msg.data === "string") {
           if (onLog) onLog(msg.data);
         }
         break;
@@ -93,7 +103,7 @@ export function useAgentWebSocket(
     }
   };
 
-  const run = (
+  const run = async (
     userMessage: ChatMessage,
     slug: string,
     inputName: string,
@@ -104,8 +114,10 @@ export function useAgentWebSocket(
   ) => {
     if (!slug || !inputName) return;
 
-    const baseURL = process.env.NEXT_PUBLIC_AGENT_SERVER!.replace(/^https?:\/\//, "");
-    const protocol = location.protocol === "https:" ? "wss" : "ws";
+    // [TEMP-FALLBACK] ngrok 서버 연결 불가 시 fly.io로 폴백
+    const agentServer = await getAgentWsBaseURL();
+    const baseURL = agentServer.replace(/^https?:\/\//, "");
+    const protocol = agentServer.startsWith("https") ? "wss" : "ws";
     const ws = new WebSocket(`${protocol}://${baseURL}/ws/agents/${slug}/run`);
     wsRef.current = ws;
 
@@ -154,5 +166,5 @@ export function useAgentWebSocket(
       handleWSMessage(event, logId, onDone, onLog);
   };
 
-  return { run, sendInput, isRunning, inputRequested };
+  return { run, sendInput, cancel, isRunning, inputRequested };
 }

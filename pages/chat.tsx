@@ -9,14 +9,14 @@ import rehypeSanitize from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import { toast } from "sonner";
 
 import TopSticky from "@/components/TopSticky";
-import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 import { useUser } from "@/contexts/UserContext";
 import { useAgentWebSocket } from "@/hooks/useAgentWebSocket";
-import { AgentDetailType, AgentType } from "@/types/agentTypes";
-import { ChatHistory, ChatMessage } from "@/types/chatTypes";
-import { agentApi, userApi } from "@/utils/api";
+import { AgentDetail, Agent } from "@/types/agent";
+import { ChatHistory, ChatMessage } from "@/types/chat";
+import { agentApi, ApiError, userApi } from "@/utils/api";
 import { navigateHandler } from "@/utils/navigate";
 import { renderAgentMarkdown } from "@/utils/renderAgentMarkdown";
 import katexSchema from "@/katexSchema";
@@ -46,7 +46,6 @@ const Chat = () => {
   // ── Hooks ──
   const router = useRouter();
   const user = useUser();
-  const subscriptions = useSubscriptions();
 
   // ── Refs ──
   const chatboxRef = useRef<HTMLDivElement>(null);
@@ -56,14 +55,14 @@ const Chat = () => {
   const shouldPostRef = useRef<boolean>(false);
   
   // ── State ──
-  const [agentDetails, setAgentDetails] = useState<AgentDetailType[]>([]);
+  const [agentDetails, setAgentDetails] = useState<AgentDetail[]>([]);
   
-  const [activeRoom, setActiveRoom] = useState<AgentType["slug"] | null>(null);
-  const [activeAgent, setActiveAgent] = useState<AgentDetailType | null>(null);
+  const [activeRoom, setActiveRoom] = useState<Agent["slug"] | null>(null);
+  const [activeAgent, setActiveAgent] = useState<AgentDetail | null>(null);
   
   const [messageInput, setMessageInput] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatHistory>([]);
-  
+
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
 
   const [oauthCode, setOauthCode] = useState<string>("");
@@ -94,6 +93,11 @@ const Chat = () => {
         setChatHistory(data.chat_history);
       }
     } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Get chat history failed:", error.data);
+        toast.error(`Failed to load chat history: ${error.message}`);
+        return;
+      }
       window.alert("History error");
       router.reload();
     } finally {
@@ -111,6 +115,11 @@ const Chat = () => {
         console.error("error:", data.detail);
       }
     } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Save chat history failed:", error.data);
+        toast.error(`Failed to save chat history: ${error.message}`);
+        return;
+      }
       window.alert("Save error");
       router.reload();
     } finally {
@@ -118,8 +127,8 @@ const Chat = () => {
     }
   };
 
-  const fetchAgentDetails = async (slugs: AgentType["slug"][]) => {
-    let results: AgentDetailType[] = [];
+  const fetchAgentDetails = async (slugs: Agent["slug"][]) => {
+    let results: AgentDetail[] = [];
     for (const slug of slugs) {
       try {
         const data = await agentApi.getAgentDetail(slug);
@@ -129,6 +138,12 @@ const Chat = () => {
           ...data.agent
         });
       } catch (error) {
+        if (error instanceof ApiError) {
+          console.error("Get agent detail failed:", error.data);
+          toast.error(`Failed to load agent: ${error.message}`);
+          return;
+        }
+
         window.alert("Get agent error");
         router.reload();
       }
@@ -183,7 +198,7 @@ const Chat = () => {
   };
 
   // ── Handlers ──
-  const handleSelectRoom = (target: AgentType["slug"], event: MouseEvent) => {
+  const handleSelectRoom = (target: Agent["slug"], event: MouseEvent) => {
     if (event.ctrlKey || event.metaKey) {
       window.open(`/chat?room=${target}`, "_blank");
       return;
@@ -227,8 +242,20 @@ const Chat = () => {
     }
   }
 
+  const handleCancel = () => {
+    socket.cancel();
+    setChatHistory(prev =>
+      prev.map(msg =>
+        msg.sender === "log" && msg.status === "processing"
+          ? { ...msg, status: "done" as const }
+          : msg
+      )
+    );
+    setIsWaiting(false);
+  };
+
   const handleSubmit = () => {
-    if (!messageInput || !activeRoom || !activeAgent) return;
+    if (!messageInput || !activeRoom || !activeAgent || isWaiting) return;
     setIsWaiting(true);
 
     const inputName = activeAgent.inputs[0]?.name ?? null;
@@ -300,7 +327,7 @@ const Chat = () => {
   };
 
   const handleInputResponse = () => {
-    if (!messageInput || !activeRoom || isWaiting) return;
+    if (!messageInput || !activeRoom) return;
     setIsWaiting(true);
 
     const userMessage: ChatMessage = {
@@ -417,7 +444,7 @@ const Chat = () => {
   }, [activeRoom]);
 
   useEffect(() => {
-    if (!user.hasAuth()) {
+    if (!user.isSignedIn()) {
       router.push({
         pathname: "/signin",
         query: { redirect: router.pathname }
@@ -425,10 +452,27 @@ const Chat = () => {
   
       return;
     }
+    if (!user.token) return;
 
-    if (subscriptions.subs.length === 0) return;
-    fetchAgentDetails(subscriptions.subs);
-  }, [user.token, subscriptions.subs]);
+    const init = async () => {
+      try {
+        const data = await userApi.getSubscriptions(user.token);
+        if (data.subscriptions.length > 0) {
+          await fetchAgentDetails(data.subscriptions);
+        } else {
+          setIsRoomsLoading(false);
+        }
+      } catch (error) {
+        if (error instanceof ApiError) {
+          console.error("Get subscriptions failed:", error.data);
+          toast.error(`Failed to load subscriptions: ${error.message}`);
+        }
+        setIsRoomsLoading(false);
+      }
+    };
+
+    init();
+  }, [user.token]);
 
   useEffect(() => {
     if (agentDetails.length === 0) return;
@@ -523,6 +567,12 @@ const Chat = () => {
                     <div className={clsx(styles["process-indicator"])}>
                       <span className={clsx(styles["process-spinner"])} />
                       <p>Processing...</p>
+                      <button
+                        className={clsx(styles["process-stop-btn"])}
+                        onClick={handleCancel}
+                      >
+                        Stop
+                      </button>
                     </div>
                   )}
                 </div>
@@ -543,7 +593,7 @@ const Chat = () => {
                 onKeyDown={handleKeyDown}
               />
               <button
-                disabled={messageInput === "" || isWaiting}
+                disabled={messageInput === "" || (isWaiting && !socket.inputRequested)}
                 onClick={socket.inputRequested ? handleInputResponse : handleSubmit}
               >
                 <Image src={ICON_SEND.src} alt={ICON_SEND.alt} />

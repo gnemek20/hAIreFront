@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 interface UserContextType {
   token: string;
   name: string;
-  hasAuth: () => boolean;
+  isSignedIn: () => boolean;
   signIn: (token: string, name: string) => void;
   signOut: () => void;
 };
@@ -18,11 +18,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string>("");
   const [name, setName] = useState<string>("");
 
-  const hasAuth = () => {
+  const isSignedIn = () => {
     if (typeof window === "undefined") return false;
 
-    const hasAuth = sessionStorage.getItem("hasAuth") === "true";
-    return hasAuth;
+    const signed = sessionStorage.getItem("hasAuth") === "true";
+    return signed;
   };
 
   const signIn = (newToken: string, newName: string) => {
@@ -56,7 +56,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ token, name, hasAuth, signIn, signOut }}>
+    <UserContext.Provider value={{ token, name, isSignedIn, signIn, signOut }}>
       {children}
     </UserContext.Provider>
   );

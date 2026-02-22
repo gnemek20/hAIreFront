@@ -6,7 +6,7 @@ import clsx from "clsx";
 
 // ── Internal Modules ──
 import Dialog from "@/components/Dialog";
-import { AgentDetailType, AgentType } from "@/types/agentTypes";
+import { AgentDetail, Agent } from "@/types/agent";
 
 // ── Styles ──
 import styles from "@/styles/components/AgentDetailDialog.module.css";
@@ -14,11 +14,11 @@ import styles from "@/styles/components/AgentDetailDialog.module.css";
 interface AgentDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubscribe: (slug: AgentType["slug"], callback?: () => void) => void;
-  onUnSubscribe: (slug: AgentType["slug"], callback?: () => void) => void;
-  onUse: (slug: AgentType["slug"], event: MouseEvent) => void;
-  subscribed: AgentType["slug"][];
-  agentDetail: AgentDetailType | null;
+  onSubscribe: (slug: Agent["slug"], callback?: () => void) => void;
+  onUnSubscribe: (slug: Agent["slug"], callback?: () => void) => void;
+  onUse: (slug: Agent["slug"], event: MouseEvent) => void;
+  subscribed: Agent["slug"][];
+  agentDetail: AgentDetail | null;
 };
 
 const LABEL_MAP: Record<string, string> = {

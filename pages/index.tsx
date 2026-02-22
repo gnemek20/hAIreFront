@@ -1,5 +1,6 @@
 import React, { ChangeEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 
 import clsx from "clsx";
@@ -8,9 +9,8 @@ import { toast } from "sonner";
 import AgentDetailDialog from "@/components/AgentDetailDialog";
 import Hero from "@/components/Hero";
 import TopSticky from "@/components/TopSticky";
-import { useSubscriptions } from "@/contexts/SubscriptionsContext";
 import { useUser } from "@/contexts/UserContext";
-import { AgentDetailType, AgentType } from "@/types/agentTypes";
+import { AgentDetail, Agent } from "@/types/agent";
 import { ApiError, agentApi, userApi } from "@/utils/api";
 import { debounceTimer } from "@/utils/timer";
 import styles from "@/styles/pages/marketplace.module.css";
@@ -25,7 +25,7 @@ const TAG_LIST = [
   "Develop"
 ];
 
-const DUMMY_AGENTS: AgentType[] = [
+const DUMMY_AGENTS: Agent[] = [
   {
     slug: "blind-resume-scanner",
     name: "[Mock Data] 블라인드 레쥬메 스캐너",
@@ -84,31 +84,37 @@ const DUMMY_AGENTS: AgentType[] = [
   },
 ];
 
-const Marketplace = () => {
+interface MarketplaceProps {
+  initialAgents: Agent[];
+}
+
+const Marketplace = ({ initialAgents }: MarketplaceProps) => {
   // ── Hooks ──
   const router = useRouter();
   const user = useUser();
-  const subscriptions = useSubscriptions();
 
   // ── Refs ──
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // ── State ──
-  const [agentsData, setAgentsData] = useState<AgentType[]>([]);
-  const [agents, setAgents] = useState<AgentType[][]>([]);
-  const [agentDetail, setAgentDetail] = useState<AgentDetailType | null>(null);
+  const hasSSRData = initialAgents.length > 0;
+  const [agentsData, setAgentsData] = useState<Agent[]>(
+    hasSSRData ? [...initialAgents, ...DUMMY_AGENTS] : []
+  );
+  const [agents, setAgents] = useState<Agent[][]>([]);
+  const [agentDetail, setAgentDetail] = useState<AgentDetail | null>(null);
 
-  const [subscribedSlugs, setSubscribedSlugs] = useState<AgentType["slug"][]>([]);
+  const [subscribedSlugs, setSubscribedSlugs] = useState<Agent["slug"][]>([]);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [activeTag, setActiveTag] = useState<string>(TAG_LIST[0]);
   const [activePage, setActivePage] = useState<number>(1);
   const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(!hasSSRData);
 
   // ── Helpers ──
-  const sliceArray = (arr: AgentType[], size = 6): AgentType[][] => {
+  const sliceArray = (arr: Agent[], size = 6): Agent[][] => {
     const result = [];
     for (let i = 0; i < arr.length; i += size) {
       result.push(arr.slice(i, i + size));
@@ -117,13 +123,13 @@ const Marketplace = () => {
     return result;
   };
 
-  const paginateAgents = (candidates: AgentType[]) => {
+  const paginateAgents = (candidates: Agent[]) => {
     const sliced = sliceArray(candidates);
     setAgents(sliced);
   };
 
   // ── Data Fetching ──
-  const fetchAgentDetail = async (slug: AgentType["slug"]) => {
+  const fetchAgentDetail = async (slug: Agent["slug"]) => {
     try {
       const data = await agentApi.getAgentDetail(slug);
 
@@ -133,6 +139,11 @@ const Marketplace = () => {
         modelcard: data.model_card
       });
     } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Get agent detail failed:", error.data);
+        toast.error(`Get agent detail failed: ${error.message}`);
+        return;
+      }
       window.alert("Get agent detail error");
       router.reload();
     }
@@ -144,7 +155,11 @@ const Marketplace = () => {
       // setAgentsData(data.agents);
       setAgentsData([...data.agents, ...DUMMY_AGENTS]);
     } catch (error) {
-      if (error instanceof ApiError) return;
+      if (error instanceof ApiError) {
+        console.error("Get agents failed:", error.data);
+        toast.error(`Get agents failed: ${error.message}`);
+        return;
+      }
       window.alert("Get agents error");
       router.reload();
     } finally {
@@ -163,23 +178,22 @@ const Marketplace = () => {
     paginateAgents(result);
   };
 
-  const computeAgents = (candidates: AgentType[]) => {
+  const computeAgents = (candidates: Agent[]) => {
     const sliced = sliceArray(candidates);
     setAgents(sliced);
   };
 
-  const subscribeAgent = async (newSlug: AgentType["slug"]) => {
+  const subscribeAgent = async (newSlug: Agent["slug"]) => {
     if (!user.token) return;
 
     try {
       await userApi.subscribe(user.token, [newSlug]);
 
-      const newSubscription = [...subscribedSlugs, newSlug];
-      subscriptions.setSubs(newSubscription)
-      setSubscribedSlugs(newSubscription);
+      setSubscribedSlugs(prev => [...prev, newSlug]);
     } catch (error) {
       if (error instanceof ApiError) {
-        console.error("Subscribe failed:", (error.data as any)?.detail || error.data);
+        console.error("Subscribe failed:", error.data);
+        toast.error(`Subscribe failed: ${error.message}`);
         return;
       }
       window.alert("Subscribe error");
@@ -187,28 +201,27 @@ const Marketplace = () => {
     }
   };
 
-  const unSubscribeAgent = async (targetSlug: AgentType["slug"]) => {
+  const unSubscribeAgent = async (targetSlug: Agent["slug"]) => {
     if (!user.token) return;
 
     try {
       await userApi.unsubscribe(user.token, targetSlug);
 
-      const newSubscription = subscribedSlugs.filter(slug => slug !== targetSlug);
-      subscriptions.setSubs(newSubscription);
-      setSubscribedSlugs(newSubscription);
+      setSubscribedSlugs(prev => prev.filter(slug => slug !== targetSlug));
     } catch (error) {
       if (error instanceof ApiError) {
-        console.error("unSubscribe failed:", (error.data as any)?.detail || error.data);
+        console.error("Unsubscribe failed:", error.data);
+        toast.error(`Unsubscribe failed: ${error.message}`);
         return;
       }
-      window.alert("unSubscribe error");
+      window.alert("Unsubscribe error");
       router.reload();
     }
   };
 
   // ── Handlers ──
-  const handleClickAgent = (targetSlug: AgentType["slug"]) => {
-    if (!user.hasAuth()) {
+  const handleClickAgent = (targetSlug: Agent["slug"]) => {
+    if (!user.isSignedIn()) {
       router.push("/signin");
       return;
     }
@@ -224,17 +237,17 @@ const Marketplace = () => {
     // else subscribeAgent(targetSlug);
   };
 
-  const handleSubscribeAgent = async (slug: AgentType["slug"], callback?: () => void) => {
+  const handleSubscribeAgent = async (slug: Agent["slug"], callback?: () => void) => {
     await subscribeAgent(slug);
     if (callback) callback();
   };
 
-  const handleUnSubscribeAgent = async (slug: AgentType["slug"], callback?: () => void) => {
+  const handleUnSubscribeAgent = async (slug: Agent["slug"], callback?: () => void) => {
     await unSubscribeAgent(slug);
     if (callback) callback();
   };
 
-  const handleUseAgent = (slug: AgentType["slug"], event: MouseEvent) => {
+  const handleUseAgent = (slug: Agent["slug"], event: MouseEvent) => {
     if (!subscribedSlugs.includes(slug)) {
       toast.warning("먼저 Agent를 구독해주세요.");
       return;
@@ -290,19 +303,35 @@ const Marketplace = () => {
   }, [agentsData]);
 
   useEffect(() => {
-    if (!user.hasAuth()) {
+    if (!user.isSignedIn()) {
       setSubscribedSlugs([]);
       return;
     }
+    if (!user.token) return;
     
-    setSubscribedSlugs(subscriptions.subs);
+    const fetchSubscriptions = async () => {
+      try {
+        const data = await userApi.getSubscriptions(user.token);
+        setSubscribedSlugs(data.subscriptions);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          console.error("Get subscriptions failed:", error.data);
+          toast.error(`Failed to load subscriptions: ${error.message}`);
+        }
+      }
+    };
+
+    fetchSubscriptions();
   }, [user.token]);
+
+  useEffect(() => {
+    // SSR이 에이전트를 제공하지 못한 경우에만 클라이언트에서 fetch
+    if (agentsData.length === 0) fetchAgents();
+  }, []);
 
   useEffect(() => {
     const page = router.query["page"] as string;
     if (page) setActivePage(parseInt(page));
-
-    fetchAgents();
   }, [router.query]);
 
   return (
@@ -446,6 +475,18 @@ const Marketplace = () => {
       </div>
     </React.Fragment>
   );
+};
+
+export const getServerSideProps: GetServerSideProps<MarketplaceProps> = async () => {
+  try {
+    const data = await agentApi.getAgents();
+    // docker_image 등 Agent 타입에 없는 필드 제거
+    const agents: Agent[] = data.agents.map(({ docker_image, ...rest }) => rest);
+    return { props: { initialAgents: agents } };
+  } catch {
+    // SSR 실패 시 빈 배열 → 클라이언트에서 재시도
+    return { props: { initialAgents: [] } };
+  }
 };
 
 export default Marketplace;
